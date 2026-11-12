@@ -244,6 +244,10 @@ origin: capture
 
 **Sudah diuji:** Windows 11 + Chrome di Wikipedia, MDN, dan paulgraham.com; waktu dari Simpan sampai catatan muncul 0,26–0,34 detik. Browser dan OS lain belum diuji.
 
+## Agent skill
+
+Gerbang berpikir Seedbed juga tersedia sebagai Agent Skill gratis (MIT) untuk agent AI seperti Claude Code, di repositori tersendiri: [Finarfin12/seedbed-skill](https://github.com/Finarfin12/seedbed-skill). Formatnya sama dengan plugin ini, jadi catatan dari skill muncul di Inkubator.
+
 ## Bahasa
 
 UI dan bank pertanyaan tersedia dalam Bahasa Indonesia dan English (Pengaturan → Bahasa). Nama perintah di Command Palette baru berganti setelah plugin dimuat ulang.

@@ -245,6 +245,10 @@ origin: capture
 
 **Tested:** Windows 11 + Chrome on Wikipedia, MDN, and paulgraham.com; capture-to-note time 0.26–0.34 s. Other browsers and operating systems are untested.
 
+## Agent skill
+
+The Seedbed thinking gates are also available as a free (MIT) Agent Skill for AI agents such as Claude Code, in its own repository: [Finarfin12/seedbed-skill](https://github.com/Finarfin12/seedbed-skill). It uses the same note format as this plugin, so notes made by the skill show up in the Incubator.
+
 ## Language
 
 The UI and question bank are available in English and Bahasa Indonesia (Settings → Language). Command names in the Command Palette change after the plugin reloads.
