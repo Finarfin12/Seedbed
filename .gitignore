@@ -27,3 +27,15 @@ test-vault/.obsidian/plugins/
 test-vault/.obsidian/workspace*.json
 tests/live/*.out.*
 tests/live/calls.log
+
+# extension/ (Seedbed Capture): hasil build, profil Chrome uji dan skrip uji lokal, bahan sementara paket store
+extension/node_modules/
+extension/dist/
+extension/.chrome-test-profile/
+extension/.test-harness/
+extension/store/_verify/
+extension/store/_v2/
+extension/store/*.zip
+extension/store/images/_raw/
+extension/store/images/_src/
+extension/store/demo-vault/.obsidian/

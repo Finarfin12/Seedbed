@@ -4,7 +4,7 @@
 
 An Obsidian plugin for incubating ideas and testing your understanding. An idea only moves up a stage after it passes a thinking "gate": **Socratic**, **Devil's Advocate**, or **Feynman**. The optional AI is only allowed to ask questions, never to answer them.
 
-> **Status: v0.6.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New in 0.6.0: captures from the [Seedbed Capture](#seedbed-capture-browser-extension) Chrome extension.
+> **Status: v0.7.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.6.0: plain property names, templates, and captures from the [Seedbed Capture](#seedbed-capture-browser-extension) Chrome extension.
 
 **Privacy and network.** With AI **off (the default)**, the plugin makes no network requests and runs no external programs. All data is plain Markdown frontmatter and callouts in your vault, so it stays readable without the plugin. AI only runs after you turn it on and approve each provider (see [Optional AI](#optional-ai)).
 
@@ -15,7 +15,7 @@ An Obsidian plugin for incubating ideas and testing your understanding. An idea 
 - [Feynman mode](#feynman-mode)
 - [Custom question bank](#custom-question-bank)
 - [Optional AI](#optional-ai)
-- [Seedbed Capture (browser extension)](#seedbed-capture-browser-extension)
+- [Seedbed Capture (browser extension)](#seedbed-capture-browser-extension), source in [`extension/`](extension/README.md)
 - [Language](#language)
 - [Installation](#installation)
 - [Development](#development)
@@ -272,7 +272,11 @@ npm run install-test-vault  # copy the build into test-vault/.obsidian/plugins/s
 
 Open the `test-vault/` folder in Obsidian (**Open folder as vault**) and enable the plugin. Don't test in your main vault.
 
-Layout:
+Repository layout:
+- repository root: the Obsidian plugin (`manifest.json` must be here for Obsidian and for the release workflow)
+- [`extension/`](extension/README.md): the **Seedbed Capture** Chrome extension, a separate project with its own `package.json` and tests (`cd extension && npm ci && npm test && npm run build`); it is not part of the plugin release
+
+Plugin layout:
 - `src/domain`: pure logic, no `obsidian` imports
 - `src/adapter`: vault, frontmatter, cache, AI providers
 - `src/ui`: panels, modals, settings

@@ -4,7 +4,7 @@
 
 Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik status setelah lolos "gerbang" berpikir: **Socratic**, **Devil's Advocate**, dan **Feynman**. AI opsional hanya boleh bertanya, tidak pernah menjawab.
 
-> **Status: v0.6.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Baru di 0.6.0: tangkapan dari ekstensi Chrome [Seedbed Capture](#seedbed-capture-ekstensi-browser).
+> **Status: v0.7.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Baru sejak 0.6.0: nama properti polos, templat, dan tangkapan dari ekstensi Chrome [Seedbed Capture](#seedbed-capture-ekstensi-browser).
 
 **Privasi dan jaringan.** Saat fitur AI **mati (bawaan)**, plugin ini tidak melakukan satu pun permintaan jaringan dan tidak menjalankan program apa pun. Semua data berupa frontmatter dan callout Markdown biasa di vault-mu, jadi tetap terbaca tanpa plugin. AI hanya aktif jika kamu menyalakannya dan menyetujui tiap penyedia (lihat [AI opsional](#ai-opsional)).
 
@@ -15,7 +15,7 @@ Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik sta
 - [Mode Feynman](#mode-feynman)
 - [Bank pertanyaan kustom](#bank-pertanyaan-kustom)
 - [AI opsional](#ai-opsional)
-- [Seedbed Capture (ekstensi browser)](#seedbed-capture-ekstensi-browser)
+- [Seedbed Capture (ekstensi browser)](#seedbed-capture-ekstensi-browser), kodenya di [`extension/`](extension/README.id.md)
 - [Bahasa](#bahasa)
 - [Instalasi](#instalasi)
 - [Pengembangan](#pengembangan)
@@ -271,7 +271,11 @@ npm run install-test-vault  # salin build ke test-vault/.obsidian/plugins/seedbe
 
 Buka folder `test-vault/` sebagai vault di Obsidian (**Open folder as vault**), lalu aktifkan plugin. Jangan pakai vault utama untuk uji.
 
-Struktur:
+Struktur repositori:
+- root repositori: plugin Obsidian (`manifest.json` harus di sini untuk Obsidian dan workflow rilis)
+- [`extension/`](extension/README.id.md): ekstensi Chrome **Seedbed Capture**, proyek terpisah dengan `package.json` dan tes sendiri (`cd extension && npm ci && npm test && npm run build`); bukan bagian rilis plugin
+
+Struktur plugin:
 - `src/domain`: logika murni, tanpa `obsidian`
 - `src/adapter`: vault, frontmatter, cache, penyedia AI
 - `src/ui`: panel, modal, pengaturan
