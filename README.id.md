@@ -246,7 +246,7 @@ origin: capture
 
 ## Agent skill
 
-[`skill/seedbed/`](skill/seedbed/SKILL.md) adalah **Agent Skill** gratis (MIT) yang membawa gerbang berpikir Seedbed ke agent AI yang mendukung `SKILL.md` (baru diuji di Claude Code). Mode di versi pertama ini: **capture** ide sebagai catatan benih, sesi **Socratic** di mana agent hanya bertanya dan kamu menjawab, dan **review** ide yang jatuh tempo. Formatnya Markdown biasa yang sama dengan plugin ini, jadi catatan dari skill muncul di Inkubator. Salin folder `skill/seedbed` ke folder skill agent-mu (Claude Code: `.claude/skills/seedbed/` di proyek atau `~/.claude/skills/seedbed/`). Mode Devil's Advocate dan Feynman belum ada di skill.
+[`skill/seedbed/`](skill/seedbed/SKILL.md) adalah **Agent Skill** gratis (MIT) yang membawa gerbang berpikir Seedbed ke agent AI yang mendukung `SKILL.md` (baru diuji di Claude Code). Mode: **capture** ide sebagai catatan benih, sesi **Socratic**, **Devil's Advocate**, dan **Feynman** di mana agent hanya bertanya dan kamu menjawab, **review** ide yang jatuh tempo, dan **setup** (berkas `.seedbed.json` opsional untuk folder-mu). Formatnya Markdown biasa yang sama dengan plugin ini, jadi catatan dari skill muncul di Inkubator. Salin folder `skill/seedbed` ke folder skill agent-mu (Claude Code: `.claude/skills/seedbed/` di proyek atau `~/.claude/skills/seedbed/`).
 
 ## Bahasa
 

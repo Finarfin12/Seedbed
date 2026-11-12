@@ -26,6 +26,12 @@ All 6 categories answered and each answer is at least 20 characters after trimmi
 
 Categories, in this order, with the label to write: Clarification, Assumptions, Evidence, Viewpoints, Implications, Question about the question.
 
+## Devil's Advocate pass rule
+At least 4 of the 5 questions answered (not empty after trimming). Labels, in order: Assumptions, Opposite, Evidence, Opponent, Failure. A pass adds `devil` to `gates`; on a `growing` note it also sets `status: mature` and `review` = today + 30 days. A `seed` note is never promoted by it. For a `concept` the gate is optional.
+
+## Feynman pass rule (skill version)
+Every gap question answered with at least 20 characters (trimmed), or no gaps found. The plugin counts unexplained terms by pattern at 0 open gaps; the status change is the same: a `seed` concept becomes `growing`, `gates` gets `feynman`, `review` = today + 14 days. The trail uses a `[!feynman-hint]-` callout (title `Feynman check — date`), which the plugin does not analyze.
+
 ## Callout (the thinking trail)
 Always **append at the end** of the note after one blank line. Never edit or delete existing text.
 
