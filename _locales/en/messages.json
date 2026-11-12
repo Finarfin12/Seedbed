@@ -1,0 +1,6 @@
+{
+	"extName": { "message": "Seedbed Capture" },
+	"extDescription": { "message": "Save selected text as a seed in Seedbed (Obsidian) with a trigger question. No server, no network." },
+	"actionTitle": { "message": "Save the selected text as a seed" },
+	"cmdCapture": { "message": "Save the selected text as a seed" }
+}

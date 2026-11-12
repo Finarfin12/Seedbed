@@ -1,0 +1,37 @@
+{
+	"kaitan": [
+		"Does this remind you of something you already know?",
+		"How does this connect to what you are working on right now?",
+		"Where have you seen a similar idea before?",
+		"Which old note or topic does this link to?",
+		"What makes this feel relevant to you today?"
+	],
+	"ragu": [
+		"Which part is not necessarily true?",
+		"Which claim here still needs proof?",
+		"What could make this statement wrong?",
+		"What evidence would change your mind?",
+		"If this comes from a weak source, which part is the most fragile?"
+	],
+	"pakai": [
+		"If this is true, what would you do differently?",
+		"What small step could you try this week based on this?",
+		"In what situation would you use this?",
+		"Who would benefit most if you applied this?",
+		"What would you have to stop doing if this is true?"
+	],
+	"tanya": [
+		"What question comes up after reading this?",
+		"What do you still not understand about this?",
+		"If you could ask the author one thing, what would it be?",
+		"What is left unexplained here that you want to know?",
+		"Which term here can you not yet explain in your own words?"
+	],
+	"lawan": [
+		"Who would disagree, and why?",
+		"What is the strongest argument against this?",
+		"When does this not apply?",
+		"What counterexample can you imagine?",
+		"What would a skeptic say about this?"
+	]
+}

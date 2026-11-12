@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy: Seedbed Capture</title>
+<style>
+body{font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;color:#1b1f23;background:#fff}
+h1{font-size:1.7rem}h2{font-size:1.2rem;margin-top:2rem}code{background:#f0f2f4;padding:.1em .35em;border-radius:4px;font-size:.92em}
+a{color:#1a6b2a}@media (prefers-color-scheme:dark){body{color:#e6e8ea;background:#16181a}code{background:#2a2e31}a{color:#7fd08a}}
+</style>
+</head>
+<body>
+<h1>Privacy Policy: Seedbed Capture</h1>
+<p>Effective date: 2026-11-12 (version 0.2.0)</p>
+<p>Developer / contact: TODO-your-name, TODO-contact-email</p>
+<p>Seedbed Capture is a Chrome extension that saves text you select on a web page as a note ("seed") in your own Obsidian vault. This policy explains what the extension handles and where that data goes.</p>
+<h2>Summary</h2>
+<ul>
+<li>The extension has no server, no account, no analytics, no advertising, and makes no network requests.</li>
+<li>The text you select leaves the extension in one way only: a local <code>obsidian://</code> link that Chrome hands to the Obsidian app on your own computer.</li>
+<li>The developer receives none of your data.</li>
+</ul>
+<h2>What the extension handles</h2>
+<p>When you start a capture (right-click "Save as seed", the keyboard shortcut, or the toolbar button), the extension handles:</p>
+<ol>
+<li>The text you selected on the page.</li>
+<li>The page's address (URL) and title, so the note can link back to the source.</li>
+<li>A trigger question shown in the capture window, and an optional one-sentence answer you type.</li>
+</ol>
+<p>It does not read the page unless you start a capture, and it does not read any other page content, cookies, passwords, forms, or browsing history.</p>
+<h2>Where the data goes</h2>
+<ul>
+<li>Chrome opens a local <code>obsidian://</code> link containing the items above. Obsidian, running on your computer, creates the note in the vault you named in the extension's options.</li>
+<li>What happens after that, including whether Obsidian or the Seedbed plugin syncs your vault, is controlled by those applications and your own settings, not by this extension.</li>
+<li>The extension does not send the data to any website, server, or third party.</li>
+</ul>
+<h2>What the extension stores</h2>
+<ul>
+<li><strong>Options</strong> (vault name, language, mode, quote length, daily limit) and a <strong>daily capture counter</strong>, in <code>chrome.storage.local</code> on your device. They remain until you change them, clear the extension's data, or uninstall it.</li>
+<li><strong>The capture in progress</strong>, in <code>chrome.storage.session</code> (temporary browser memory), only to pass it from the background to the capture window. It is deleted as soon as the window reads it. If you abandon a capture before the window opens, the data stays only in session memory until Chrome clears the session.</li>
+<li>There is no capture history, and nothing is synced through your Google account (<code>chrome.storage.sync</code> is not used).</li>
+</ul>
+<h2>Permissions</h2>
+<ul>
+<li><code>contextMenus</code>: the "Save as seed" right-click item.</li>
+<li><code>storage</code>: the options, counter, and in-progress capture described above.</li>
+<li><code>activeTab</code>: temporary access to the current tab, only after you press the shortcut or toolbar button.</li>
+<li><code>scripting</code>: reads your current text selection in the active tab after you press the shortcut or toolbar button. No other code is injected.</li>
+</ul>
+<p>The extension requests no host permissions and has no content scripts.</p>
+<h2>Sharing, selling, and advertising</h2>
+<p>The developer does not collect, sell, share, or transfer your data, and does not use it for advertising, profiling, or credit decisions. Nobody at the developer can read it, because it never reaches the developer.</p>
+<h2>Remote code</h2>
+<p>The extension does not load or run remote code. All code ships inside the extension package.</p>
+<h2>Limited Use disclosure</h2>
+<p>The use of information received from Chrome APIs will adhere to the Chrome Web Store User Data Policy, including the Limited Use requirements.</p>
+<h2>Children</h2>
+<p>The extension is a general productivity tool and is not directed to children.</p>
+<h2>Changes</h2>
+<p>If this policy changes, the new version will be published at the same address with a new effective date.</p>
+<h2>Contact</h2>
+<p>TODO-contact-email</p>
+</body>
+</html>
