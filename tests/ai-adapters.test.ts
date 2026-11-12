@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -67,7 +67,7 @@ describe("NodeProcessRunner (keamanan §7.3)", () => {
 		expect(r.code).toBe(0);
 		expect(out.args).toEqual(evil); // argumen utuh, tidak ditafsirkan shell
 		expect(out.s).toBe("isi catatan\nbaris dua");
-		expect(out.cwd.toLowerCase()).toBe(dir.toLowerCase().replace(/\//g, "\\"));
+		expect(realpathSync(out.cwd)).toBe(realpathSync(dir)); // lintas OS
 		expect(existsSync(canary)).toBe(false);
 		expect(existsSync(join(dir, "out.txt"))).toBe(false);
 		rmSync(dir, { recursive: true, force: true });
@@ -117,7 +117,7 @@ describe("NodeProcessRunner (keamanan §7.3)", () => {
 	it("makeSandboxDir creates an EMPTY temp dir and removes it", async () => {
 		const s = await makeSandboxDir();
 		expect(existsSync(s.dir)).toBe(true);
-		expect(s.dir.toLowerCase().startsWith(tmpdir().toLowerCase())).toBe(true);
+		expect(realpathSync(s.dir).toLowerCase().startsWith(realpathSync(tmpdir()).toLowerCase())).toBe(true);
 		const { readdirSync } = await import("node:fs");
 		expect(readdirSync(s.dir)).toEqual([]);
 		await s.cleanup();
