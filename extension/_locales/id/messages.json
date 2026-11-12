@@ -1,0 +1,6 @@
+{
+	"extName": { "message": "Seedbed Capture" },
+	"extDescription": { "message": "Simpan teks terpilih sebagai benih di Seedbed (Obsidian) lengkap dengan pertanyaan pemicu. Tanpa server, tanpa jaringan." },
+	"actionTitle": { "message": "Simpan teks terpilih sebagai benih" },
+	"cmdCapture": { "message": "Simpan teks terpilih sebagai benih" }
+}

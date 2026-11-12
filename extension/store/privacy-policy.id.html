@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kebijakan Privasi: Seedbed Capture</title>
+<style>
+body{font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;max-width:46rem;margin:2rem auto;padding:0 1rem;color:#1b1f23;background:#fff}
+h1{font-size:1.7rem}h2{font-size:1.2rem;margin-top:2rem}code{background:#f0f2f4;padding:.1em .35em;border-radius:4px;font-size:.92em}
+a{color:#1a6b2a}@media (prefers-color-scheme:dark){body{color:#e6e8ea;background:#16181a}code{background:#2a2e31}a{color:#7fd08a}}
+</style>
+</head>
+<body>
+<h1>Kebijakan Privasi: Seedbed Capture</h1>
+<p>Berlaku sejak: 2026-11-12 (versi 0.2.0)</p>
+<p>Pengembang / kontak: TODO-your-name, TODO-contact-email</p>
+<p>Seedbed Capture adalah ekstensi Chrome yang menyimpan teks yang kamu pilih di halaman web sebagai catatan ("benih") di vault Obsidian milikmu sendiri. Kebijakan ini menjelaskan apa yang ditangani ekstensi dan ke mana data itu pergi.</p>
+<h2>Ringkasan</h2>
+<ul>
+<li>Ekstensi ini tidak punya server, akun, analitik, atau iklan, dan tidak membuat permintaan jaringan.</li>
+<li>Teks yang kamu pilih hanya keluar dari ekstensi lewat satu cara: tautan <code>obsidian://</code> lokal yang diserahkan Chrome ke aplikasi Obsidian di komputermu sendiri.</li>
+<li>Pengembang tidak menerima data apa pun darimu.</li>
+</ul>
+<h2>Data yang ditangani</h2>
+<p>Saat kamu memulai tangkapan (klik kanan "Simpan sebagai benih", pintasan keyboard, atau tombol toolbar), ekstensi menangani:</p>
+<ol>
+<li>Teks yang kamu pilih di halaman.</li>
+<li>Alamat (URL) dan judul halaman, agar catatan bisa menaut ke sumbernya.</li>
+<li>Pertanyaan pemicu di jendela tangkapan, dan satu kalimat jawaban opsional yang kamu ketik.</li>
+</ol>
+<p>Ekstensi tidak membaca halaman kecuali kamu memulai tangkapan, dan tidak membaca isi halaman lain, cookie, kata sandi, formulir, atau riwayat penjelajahan.</p>
+<h2>Ke mana data pergi</h2>
+<ul>
+<li>Chrome membuka tautan <code>obsidian://</code> lokal yang memuat hal-hal di atas. Obsidian di komputermu membuat catatan di vault yang kamu tulis di opsi ekstensi.</li>
+<li>Apa yang terjadi sesudahnya, termasuk apakah Obsidian atau plugin Seedbed menyinkronkan vault-mu, diatur oleh aplikasi itu dan pengaturanmu sendiri, bukan oleh ekstensi ini.</li>
+<li>Ekstensi tidak mengirim data ke situs, server, atau pihak ketiga mana pun.</li>
+</ul>
+<h2>Yang disimpan ekstensi</h2>
+<ul>
+<li><strong>Opsi</strong> (nama vault, bahasa, mode, panjang kutipan, batas harian) dan <strong>penghitung tangkapan harian</strong>, di <code>chrome.storage.local</code> pada perangkatmu. Tersimpan sampai kamu mengubahnya, menghapus data ekstensi, atau mencopot ekstensi.</li>
+<li><strong>Tangkapan yang sedang berjalan</strong>, di <code>chrome.storage.session</code> (memori sementara browser), hanya untuk meneruskannya dari latar belakang ke jendela tangkapan. Dihapus begitu jendela membacanya. Bila kamu meninggalkan tangkapan sebelum jendelanya terbuka, data hanya tinggal di memori sesi sampai Chrome membersihkan sesi.</li>
+<li>Tidak ada riwayat tangkapan, dan tidak ada yang disinkronkan lewat akun Google-mu (<code>chrome.storage.sync</code> tidak dipakai).</li>
+</ul>
+<h2>Izin</h2>
+<ul>
+<li><code>contextMenus</code>: item klik kanan "Simpan sebagai benih".</li>
+<li><code>storage</code>: opsi, penghitung, dan tangkapan sementara di atas.</li>
+<li><code>activeTab</code>: akses sementara ke tab saat ini, hanya setelah kamu menekan pintasan atau tombol toolbar.</li>
+<li><code>scripting</code>: membaca teks yang sedang kamu pilih di tab aktif setelah kamu menekan pintasan atau tombol toolbar. Tidak ada kode lain yang disuntikkan.</li>
+</ul>
+<p>Ekstensi tidak meminta izin host dan tidak punya content script.</p>
+<h2>Berbagi, menjual, dan iklan</h2>
+<p>Pengembang tidak mengumpulkan, menjual, membagikan, atau mentransfer datamu, dan tidak memakainya untuk iklan, profiling, atau keputusan kredit. Tidak ada orang di pihak pengembang yang bisa membacanya, karena data itu tidak pernah sampai ke pengembang.</p>
+<h2>Kode jarak jauh</h2>
+<p>Ekstensi tidak memuat atau menjalankan kode jarak jauh. Semua kode ada di dalam paket ekstensi.</p>
+<h2>Pernyataan Limited Use</h2>
+<p>Penggunaan informasi yang diterima dari API Chrome akan mematuhi Kebijakan Data Pengguna Chrome Web Store, termasuk persyaratan Limited Use.</p>
+<h2>Anak-anak</h2>
+<p>Ekstensi ini alat produktivitas umum dan tidak ditujukan untuk anak-anak.</p>
+<h2>Perubahan</h2>
+<p>Bila kebijakan ini berubah, versi baru akan dipublikasikan di alamat yang sama dengan tanggal berlaku baru.</p>
+<h2>Kontak</h2>
+<p>TODO-contact-email</p>
+</body>
+</html>
