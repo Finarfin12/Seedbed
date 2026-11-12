@@ -1,5 +1,6 @@
 import { normalizePath } from "obsidian";
 import type { App, TFile } from "obsidian";
+import { uniqueBase } from "../domain/captureValidator";
 import { newNoteContent, safeFileName } from "../domain/templates";
 import type { Language, Settings, Tipe } from "../domain/types";
 
@@ -24,6 +25,13 @@ export class NoteFactory {
 		return this.app.vault.create(path, newNoteContent(tipe, today, settings, language, feynman));
 	}
 
+	/** Catatan dari tangkapan: badan sudah divalidasi/di-escape; nama unik, tidak pernah menimpa (NF-C5). */
+	async createFromBody(base: string, body: string, settings: Settings): Promise<TFile> {
+		const folder = settings.folderIde.trim();
+		await this.ensureFolder(folder);
+		return this.app.vault.create(this.uniquePath(folder, base), body);
+	}
+
 	private async ensureFolder(folder: string): Promise<void> {
 		if (!folder) return;
 		const path = normalizePath(folder);
@@ -36,14 +44,15 @@ export class NoteFactory {
 		}
 	}
 
+	/** Nama unik di folder; tanpa beda huruf besar/kecil agar tidak menabrak file di sistem berkas case-insensitive. */
 	private uniquePath(folder: string, base: string): string {
 		const prefix = folder ? `${normalizePath(folder)}/` : "";
-		let candidate = normalizePath(`${prefix}${base}.md`);
+		const dir = folder ? this.app.vault.getFolderByPath(normalizePath(folder)) : this.app.vault.getRoot();
+		const existing = (dir?.children ?? []).map((c) => c.name);
+		let name = uniqueBase(base, existing);
+		// Sabuk pengaman: cek juga lewat path (case-sensitive) untuk file yang belum ada di children.
 		let n = 2;
-		while (this.app.vault.getAbstractFileByPath(candidate)) {
-			candidate = normalizePath(`${prefix}${base} ${n}.md`);
-			n++;
-		}
-		return candidate;
+		while (this.app.vault.getAbstractFileByPath(normalizePath(`${prefix}${name}.md`))) name = `${base} ${n++}`;
+		return normalizePath(`${prefix}${name}.md`);
 	}
 }
