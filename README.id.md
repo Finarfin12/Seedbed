@@ -4,7 +4,7 @@
 
 Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik status setelah lolos "gerbang" berpikir: **Socratic**, **Devil's Advocate**, dan **Feynman**. AI opsional hanya boleh bertanya, tidak pernah menjawab.
 
-> **Status: v0.5.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide".
+> **Status: v0.7.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Baru sejak 0.6.0: nama properti polos, templat, dan tangkapan dari ekstensi Chrome [Seedbed Capture](#seedbed-capture-ekstensi-browser).
 
 **Privasi dan jaringan.** Saat fitur AI **mati (bawaan)**, plugin ini tidak melakukan satu pun permintaan jaringan dan tidak menjalankan program apa pun. Semua data berupa frontmatter dan callout Markdown biasa di vault-mu, jadi tetap terbaca tanpa plugin. AI hanya aktif jika kamu menyalakannya dan menyetujui tiap penyedia (lihat [AI opsional](#ai-opsional)).
 
@@ -15,6 +15,7 @@ Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik sta
 - [Mode Feynman](#mode-feynman)
 - [Bank pertanyaan kustom](#bank-pertanyaan-kustom)
 - [AI opsional](#ai-opsional)
+- [Seedbed Capture (ekstensi browser)](#seedbed-capture-ekstensi-browser), kodenya di [`extension/`](extension/README.id.md)
 - [Bahasa](#bahasa)
 - [Instalasi](#instalasi)
 - [Pengembangan](#pengembangan)
@@ -41,29 +42,37 @@ Benih --(Socratic / Feynman)--> Tumbuh --(Devil's Advocate)--> Matang
 | Perintah (Command Palette) | Fungsi |
 |---|---|
 | Tangkap ide baru | Buat catatan ide dari template di folder `Ide/` |
-| Jadikan catatan ini ide / konsep | Tambah properti `bengkel-*` ke catatan yang sudah ada |
+| Jadikan catatan ini ide / konsep | Tambah properti Seedbed ke catatan yang sudah ada (tidak pernah menimpa `type`/`status` yang bukan tulisannya) |
 | Naikkan status ide ini | Naik satu status; membuka gerbang yang dibutuhkan |
 | Tantang ide ini (Devil's Advocate) | 5 pertanyaan penantang untuk catatan apa pun; hasilnya jadi callout |
 | Mulai Feynman | Buat catatan `Feynman - <Konsep>` (tipe konsep) di folder `Konsep/` |
 | Periksa penjelasan (Feynman) | Cari istilah yang belum dijelaskan dan kalimat yang terlalu panjang |
+| Buat templat Seedbed | Tambahkan templat Obsidian "Seedbed Idea" dan "Seedbed Concept" ke folder templat (tidak pernah menimpa) |
+| Migrasikan properti Seedbed | Ubah catatan berformat properti lama (0.6 `bengkel-*` atau nama dev `seedbed-*`) ke nama polos (bertanya dulu, menyebut jumlah catatan) |
 | Buka Inkubator | Panel samping: jatuh tempo, lalu per status |
 
 Panel Inkubator punya tombol **Naikkan / Tunda / Buang / Buka**, plus **Buka ulang / Pulihkan**. Di desktop ada penanda "💡 N jatuh tempo" di status bar; di mobile penandanya ada di panel.
 
 ## Format data
 
-Frontmatter adalah sumber kebenaran status. Awalan `bengkel-` mencegah bentrok dengan plugin lain:
+Frontmatter adalah sumber kebenaran status. Nama properti **polos, tanpa prefiks, dan berbahasa Inggris**, begitu juga nilainya, untuk semua bahasa UI, supaya query dan template tetap sederhana:
 
 ```yaml
 ---
-bengkel-tipe: ide            # ide | konsep
-bengkel-status: tumbuh       # benih | tumbuh | matang | dibuang
-bengkel-dibuat: 2026-11-11
-bengkel-tinjau: 2026-11-25   # jatuh tempo berikutnya
-bengkel-gerbang:             # gerbang yang sudah dilewati
+type: idea            # idea | concept
+status: growing       # seed | growing | mature | discarded
+created: 2026-11-11   # YYYY-MM-DD
+review: 2026-11-25    # YYYY-MM-DD, jatuh tempo berikutnya
+gates:                # gerbang yang sudah dilewati (socratic | devil | feynman)
   - socratic
+source: https://contoh.com/artikel   # hanya untuk tangkapan dari browser
+origin: capture                       # hanya untuk tangkapan dari browser
 ---
 ```
+
+**Catatan mana yang milik Seedbed?** Karena nama-nama ini umum, sebuah catatan milik Seedbed **hanya jika `type`-nya `idea` atau `concept`**. Catatan lain, bahkan yang punya `status: done`, `type: book`, atau `created`, diabaikan total: tidak tampil di Inkubator, tidak ditandai tidak valid, dan tidak pernah ditulis. Catatan ber-`type: idea` atau `concept` dengan `status` di luar daftar di atas tampil di bagian **Tidak valid**.
+
+**Nama properti bisa diatur** (Pengaturan → Nama properti), supaya cocok dengan template yang sudah kamu punya, misalnya `kind` menggantikan `type`. Nilainya (`idea`, `seed`, dst.) tetap. Mengubah nama tidak mengganti nama properti di catatan yang sudah ada. `created` dan `review` selalu tanggal `YYYY-MM-DD`, dan `source` serta `created` sengaja sama dengan nama yang lazim dipakai Obsidian Web Clipper.
 
 Jejak berpikir disimpan sebagai callout yang hanya ditambahkan di akhir catatan. Label sumber pertanyaan ikut tercatat:
 
@@ -74,15 +83,67 @@ Jejak berpikir disimpan sebagai callout yang hanya ditambahkan di akhir catatan.
 > Jawaban: Dibanding mengambil dari database.
 ```
 
-Plugin **tidak pernah menghapus isi catatan**. Ia hanya menambah callout dan mengubah properti berawalan `bengkel-`.
+Plugin **tidak pernah menghapus isi catatan**. Ia hanya menambah callout dan mengubah properti miliknya sendiri (nama di Pengaturan).
 
-Contoh query Dataview:
+### Templat
+
+Seedbed bisa membuatkan dua templat Obsidian siap pakai, supaya catatan yang kamu mulai manual ikut terbaca:
+
+- `Seedbed Idea.md` dan `Seedbed Concept.md`, di folder templat-mu: yang diatur di Pengaturan → Templat, kalau tidak ada folder plugin inti *Templates* (dibaca dari `.obsidian/templates.json`), kalau tidak ada `Templates/`.
+- Isinya memakai **nama properti-mu** dari Pengaturan → Nama properti dan bahasa plugin. Templat konsep memuat petunjuk Feynman.
+- **Tidak ada yang ditulis diam-diam.** Saat plugin pertama kali aktif, ia bertanya sekali: **Buat** atau **Nanti**. Kamu bisa membuatnya kapan saja lewat perintah **Buat templat Seedbed** atau tombol di Pengaturan → Templat.
+- **Berkas yang sudah ada tidak pernah ditimpa.** Bila sebuah templat sudah ada, ia dilewati dan Seedbed memberi tahu.
+
+```markdown
+---
+type: idea
+status: seed
+created: {{date:YYYY-MM-DD}}
+review:
+gates: []
+---
+
+Tulis idemu di sini. Tak perlu rapi: yang penting tertangkap dulu.
+```
+
+(Templat konsep sama, dengan `type: concept`, callout petunjuk Feynman, dan bagian "Penjelasanku".)
+
+**Tanggal terisi sendiri.** Bila sebuah catatan ber-`type: idea` atau `concept` dan `created` atau `review`-nya **kosong** (misalnya baru dibuat dari templat), Seedbed mengisinya: `created` = hari ini dan `review` = hari ini ditambah interval status catatan itu. Hanya properti Seedbed yang kosong yang diisi: yang sudah terisi, catatan yang bukan milik Seedbed, dan properti yang sama sekali tidak ada dibiarkan, dan catatan yang sudah diisi tidak ditulis ulang.
+
+Memakai plugin **Templater**, bukan plugin inti? Pakai sintaks tanggalnya sendiri di salinan templat, misalnya `created: <% tp.date.now("YYYY-MM-DD") %>`; biarkan `review:` kosong. (Di sini hanya diuji dengan plugin inti Templates.)
+
+### Contoh query Dataview
 
 ````markdown
 ```dataview
-TABLE bengkel-status, bengkel-tinjau FROM "Ide" WHERE bengkel-tipe = "ide"
+TABLE review, source
+FROM "Ide"
+WHERE type = "idea" AND status = "seed"
+SORT review ASC
 ```
 ````
+
+(Belum dijalankan di repositori ini: Dataview tidak terpasang di test-vault. Bila kamu mengubah nama properti, pakai namamu.)
+
+### Upgrade dari 0.6
+
+0.7.0 mengganti nama properti dan nilainya (callout `[!pemicu]` kini `[!trigger]`):
+
+| 0.6 | 0.7 |
+|---|---|
+| `bengkel-tipe: ide / konsep` | `type: idea / concept` |
+| `bengkel-status: benih / tumbuh / matang / dibuang` | `status: seed / growing / mature / discarded` |
+| `bengkel-dibuat` | `created` |
+| `bengkel-tinjau` | `review` |
+| `bengkel-gerbang` | `gates` (nilai tetap) |
+| `bengkel-sumber` | `source` |
+| `bengkel-asal` | `origin` |
+
+Tidak ada yang rusak saat upgrade:
+- **Catatan lama tetap terbaca** (juga nama `seedbed-*` dari build pengembangan 0.7). Inkubator menampilkan ide yang sama; properti lama dan baru, bahkan campuran dalam satu catatan, dipahami, dan callout `[!pemicu]` lama tetap bergaya.
+- **Menulis berarti mengonversi, hanya properti milik Seedbed.** Saat plugin mengubah catatan lama (Naikkan, Tunda, gerbang, dst.), properti lama catatan itu dikonversi dalam edit yang sama. Properti lain tidak disentuh.
+- **Konversi sekaligus** lewat perintah **Migrasikan properti Seedbed**. Ia menyebut jumlah catatan yang akan diubah dan bertanya dulu. Ia tidak pernah menimpa: bila sebuah catatan sudah punya properti tujuan dengan nilai lain (misalnya `status: draft` dari template lain), catatan itu **dilewati dan didaftar di hasil**, dan tidak ada yang berubah. Catatan dengan type lama yang bukan idea/concept juga dilewati agar tetap terlihat di Tidak valid. Isi catatan tidak pernah disentuh, dan menjalankannya lagi tidak mengubah apa-apa.
+- **Query Dataview atau template milikmu** yang memakai nama `bengkel-*` perlu kamu ganti setelah migrasi.
 
 ## Mode Feynman
 
@@ -138,6 +199,51 @@ AI dipakai **hanya untuk bertanya**: pertanyaan Socratic dan Devil's Advocate ya
 
 **Kuota langganan:** tiap pertanyaan Socratic adaptif = 1 panggilan; Devil's Advocate = 1 panggilan untuk 5 pertanyaan; tiap petunjuk = 1 panggilan. Pengaturan menampilkan jumlah panggilan sesi ini. Periksa syarat layanan tiap penyedia sebelum memakainya.
 
+## Seedbed Capture (ekstensi browser)
+
+Ide yang muncul saat browsing sering hilang karena tidak sempat dicatat. **Seedbed Capture** adalah ekstensi Chrome pendamping yang menanam ide itu langsung ke Inkubator.
+
+**Cara kerja**
+1. Blok teks di halaman web, klik kanan, lalu pilih **Simpan sebagai benih** (atau tekan `Alt+Shift+S`).
+2. Jendela kecil menampilkan kutipan, halaman sumber, dan **satu pertanyaan pemicu**, misalnya "Bagian mana yang menurutmu belum tentu benar?". Kamu bisa mengganti pertanyaannya, menulis jawaban satu kalimat, atau membiarkannya kosong.
+3. Klik **Simpan** (`Ctrl+Enter`). Ekstensi membuka link `obsidian://seedbed-capture`, lalu Seedbed memeriksanya dan membuat catatan `benih` di folder Ide.
+
+**Bukan web clipper.** Clipper menyimpan apa yang kamu baca. Seedbed Capture menyimpan apa yang kamu *pikirkan* tentang bacaan itu: kutipan pendek, pertanyaan pemicu, dan jawabanmu, yang langsung masuk alur benih → tumbuh → matang.
+
+**Catatan yang dibuat**
+
+```markdown
+---
+type: idea
+status: seed
+created: 2026-11-12
+review: 2026-11-19
+source: https://contoh.com/artikel
+origin: capture
+---
+> [!quote] Kutipan — Judul Halaman
+> teks yang diblok…
+> — [Judul Halaman](https://contoh.com/artikel)
+
+> [!trigger] Pertanyaan pemicu
+> Bagian mana yang menurutmu belum tentu benar?
+> Jawaban: …
+```
+
+**Menahan tumpukan.** Karena menangkap itu mudah, ide juga mudah menumpuk. Ekstensi memberi peringatan setelah 5 benih sehari (bisa diatur), dan setiap kali tersimpan Seedbed menampilkan "Benih tersimpan. N benih belum ditinjau."
+
+**Keamanan**
+- Situs mana pun bisa mencoba membuka link `obsidian://`, jadi Seedbed bertanya **"Simpan tangkapan sebagai benih?"** sebelum menyimpan (aktif secara bawaan; Pengaturan → Tangkapan dari ekstensi).
+- Link tangkapan hanya bisa membuat **catatan benih baru yang sudah divalidasi**. Tidak pernah membaca, menimpa, atau menghapus catatan.
+- Semua parameter divalidasi dan di-escape: URL sumber hanya `http`/`https`, nama file aman, ada batas panjang, dan teks halaman tidak bisa menyisipkan frontmatter atau callout tambahan.
+- Maksimal 1 tangkapan menunggu konfirmasi, dan ada batas jumlah per menit.
+
+**Pengaturan di Seedbed:** konfirmasi setiap tangkapan (aktif), buka catatan setelah disimpan (mati), batas karakter kutipan.
+
+**Fakta ekstensi:** Manifest V3, tanpa server, tanpa akun, tanpa akses jaringan, tanpa telemetri. Kutipan dipotong ke 1.000 karakter secara bawaan. Tanpa Seedbed, mode cadangan membuat catatan biasa lewat `obsidian://new` milik Obsidian. Cara pasang dan alasan tiap izin ada di README ekstensi (`seedbed-capture/README.id.md`).
+
+**Sudah diuji:** Windows 11 + Chrome di Wikipedia, MDN, dan paulgraham.com; waktu dari Simpan sampai catatan muncul 0,26–0,34 detik. Browser dan OS lain belum diuji.
+
 ## Bahasa
 
 UI dan bank pertanyaan tersedia dalam Bahasa Indonesia dan English (Pengaturan → Bahasa). Nama perintah di Command Palette baru berganti setelah plugin dimuat ulang.
@@ -165,7 +271,11 @@ npm run install-test-vault  # salin build ke test-vault/.obsidian/plugins/seedbe
 
 Buka folder `test-vault/` sebagai vault di Obsidian (**Open folder as vault**), lalu aktifkan plugin. Jangan pakai vault utama untuk uji.
 
-Struktur:
+Struktur repositori:
+- root repositori: plugin Obsidian (`manifest.json` harus di sini untuk Obsidian dan workflow rilis)
+- [`extension/`](extension/README.id.md): ekstensi Chrome **Seedbed Capture**, proyek terpisah dengan `package.json` dan tes sendiri (`cd extension && npm ci && npm test && npm run build`); bukan bagian rilis plugin
+
+Struktur plugin:
 - `src/domain`: logika murni, tanpa `obsidian`
 - `src/adapter`: vault, frontmatter, cache, penyedia AI
 - `src/ui`: panel, modal, pengaturan
@@ -182,4 +292,4 @@ Struktur:
 
 ## Lisensi
 
-0-BSD.
+[MIT](LICENSE), hak cipta (c) 2026 Finarfin12.

@@ -1,5 +1,6 @@
 import type { App, TFile } from "obsidian";
 import { parseIdeaNote } from "../domain/frontmatter";
+import type { PropNames } from "../domain/frontmatter";
 import { isDue } from "../domain/scheduler";
 import type { Idea, InvalidIdea, ParsedNote } from "../domain/types";
 
@@ -14,7 +15,12 @@ export class IdeaIndex {
 	private invalid = new Map<string, InvalidIdea>();
 	private listeners = new Set<() => void>();
 
-	constructor(private app: App) {}
+	constructor(
+		private app: App,
+		private names: () => PropNames,
+		/** Path yang bukan catatan (mis. folder templat): tidak pernah dibaca sebagai ide. */
+		private ignored: (path: string) => boolean = () => false,
+	) {}
 
 	rebuild(): void {
 		this.ideas.clear();
@@ -32,7 +38,7 @@ export class IdeaIndex {
 
 	/** Pakai frontmatter yang baru saja kita tulis (cache Obsidian mungkin belum diperbarui). */
 	setFromFrontmatter(file: TFile, fm: FM): void {
-		this.set(file.path, parseIdeaNote(file.path, file.basename, fm));
+		this.set(file.path, this.ignored(file.path) ? { kind: "none" } : parseIdeaNote(file.path, file.basename, fm, this.names()));
 	}
 
 	remove(path: string): void {
@@ -70,7 +76,8 @@ export class IdeaIndex {
 
 	private parse(file: TFile): ParsedNote {
 		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as FM | undefined;
-		return parseIdeaNote(file.path, file.basename, fm);
+		if (this.ignored(file.path)) return { kind: "none" };
+		return parseIdeaNote(file.path, file.basename, fm, this.names());
 	}
 
 	private apply(path: string, parsed: ParsedNote): void {

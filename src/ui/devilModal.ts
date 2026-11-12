@@ -12,7 +12,7 @@ export interface DevilFlow {
 	onDone: (entries: SessionEntry[]) => void;
 }
 
-/** 5 pertanyaan dalam satu layar. Simpan aktif setelah `required` pertanyaan terjawab. Tombol tetap terlihat (sticky). */
+/** 5 pertanyaan dalam satu layar. Simpan aktif setelah `required` pertanyaan terjawab. Badan menggulir, footer tetap terlihat. */
 export class DevilModal extends Modal {
 	private answers: string[];
 	private flagged: boolean[];
@@ -37,12 +37,15 @@ export class DevilModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		this.setTitle(this.t("devil.title"));
+		this.modalEl.addClass("bengkel-devil-modal");
 		const n = this.questions.length;
-		contentEl.createEl("p", { text: this.t("devil.intro", { m: this.required, n }) });
+		// Hanya badan pertanyaan yang menggulir; footer (status + tombol) selalu terlihat.
+		const body = contentEl.createDiv({ cls: "bengkel-devil-body" });
+		body.createEl("p", { text: this.t("devil.intro", { m: this.required, n }) });
 
 		const areas: HTMLTextAreaElement[] = [];
 		this.questions.forEach((q, i) => {
-			const block = contentEl.createDiv({ cls: "bengkel-devil-block" });
+			const block = body.createDiv({ cls: "bengkel-devil-block" });
 			block.createEl("strong", { text: this.t(`cat.${q.category}`) });
 			block.createSpan({ text: ` · ${formatSource(q.source ?? { kind: "bank" }, this.lang)}`, cls: "bengkel-source" });
 			const qEl = block.createEl("p", { text: q.text, cls: "bengkel-question", attr: { id: `bengkel-dq-${i}` } });

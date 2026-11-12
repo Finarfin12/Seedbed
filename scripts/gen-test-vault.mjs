@@ -1,3 +1,4 @@
+// CATATAN: fixture ini SENGAJA memakai format properti lama 0.6 (bengkel-*, nilai Indonesia) supaya kompatibilitas baca teruji; jalankan perintah "Migrate Seedbed properties to English" di Obsidian untuk mengonversinya.
 // Membuat vault uji (±22 catatan contoh) di test-vault/. Tanggal tinjau relatif terhadap hari ini.
 // Pakai: npm run gen-test-vault
 // HANYA menulis di dalam test-vault/ milik proyek ini. Tidak menyentuh vault lain.

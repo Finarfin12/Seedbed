@@ -4,7 +4,7 @@
 
 An Obsidian plugin for incubating ideas and testing your understanding. An idea only moves up a stage after it passes a thinking "gate": **Socratic**, **Devil's Advocate**, or **Feynman**. The optional AI is only allowed to ask questions, never to answer them.
 
-> **Status: v0.5.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile.
+> **Status: v0.7.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.6.0: plain property names, templates, and captures from the [Seedbed Capture](#seedbed-capture-browser-extension) Chrome extension.
 
 **Privacy and network.** With AI **off (the default)**, the plugin makes no network requests and runs no external programs. All data is plain Markdown frontmatter and callouts in your vault, so it stays readable without the plugin. AI only runs after you turn it on and approve each provider (see [Optional AI](#optional-ai)).
 
@@ -15,6 +15,7 @@ An Obsidian plugin for incubating ideas and testing your understanding. An idea 
 - [Feynman mode](#feynman-mode)
 - [Custom question bank](#custom-question-bank)
 - [Optional AI](#optional-ai)
+- [Seedbed Capture (browser extension)](#seedbed-capture-browser-extension), source in [`extension/`](extension/README.md)
 - [Language](#language)
 - [Installation](#installation)
 - [Development](#development)
@@ -41,11 +42,13 @@ Seed --(Socratic / Feynman)--> Growing --(Devil's Advocate)--> Mature
 | Command (Command Palette) | What it does |
 |---|---|
 | Capture new idea | Create an idea note from a template in the `Ide/` folder |
-| Make this note an idea / a concept | Add `bengkel-*` properties to an existing note |
+| Make this note an idea / a concept | Add the Seedbed properties to an existing note (never overwrites a `type`/`status` it did not write) |
 | Promote this idea | Move up one stage; opens the required gate |
 | Challenge this idea (Devil's Advocate) | 5 challenging questions on any note; answers are saved as a callout |
 | Start Feynman | Create a `Feynman - <Concept>` note (type concept) in the `Konsep/` folder |
 | Check explanation (Feynman) | Find unexplained terms and overly long sentences |
+| Create Seedbed templates | Add the "Seedbed Idea" and "Seedbed Concept" Obsidian templates to your templates folder (never overwrites) |
+| Migrate Seedbed properties | Convert notes that still use an old property format (0.6 `bengkel-*` or the `seedbed-*` dev names) to the plain names (asks first, shows how many notes) |
 | Open Incubator | Side panel: due items first, then grouped by stage |
 | Open Feynman gaps panel | List of gaps found in the current explanation |
 
@@ -53,18 +56,24 @@ The Incubator panel has **Promote / Snooze / Discard / Open** buttons, plus **Re
 
 ## Data format
 
-Frontmatter is the source of truth for status. The `bengkel-` prefix avoids clashes with other plugins. Property values are kept in Indonesian for every UI language, so queries stay stable:
+Frontmatter is the source of truth for status. Property **names are plain, unprefixed, and English**, and so are the values, for every UI language, so queries and templates stay simple:
 
 ```yaml
 ---
-bengkel-tipe: ide            # ide (idea) | konsep (concept)
-bengkel-status: tumbuh       # benih (seed) | tumbuh (growing) | matang (mature) | dibuang (discarded)
-bengkel-dibuat: 2026-11-11   # created
-bengkel-tinjau: 2026-11-25   # next review date
-bengkel-gerbang:             # gates already passed
+type: idea            # idea | concept
+status: growing       # seed | growing | mature | discarded
+created: 2026-11-11   # YYYY-MM-DD
+review: 2026-11-25    # YYYY-MM-DD, next review date
+gates:                # gates already passed (socratic | devil | feynman)
   - socratic
+source: https://example.com/article   # only for captures from the browser
+origin: capture                         # only for captures from the browser
 ---
 ```
+
+**Which notes are Seedbed's?** Because these names are common, a note belongs to Seedbed **only when its `type` is `idea` or `concept`**. Any other note, even one with `status: done`, `type: book`, or `created`, is ignored completely: it never shows in the Incubator, is never marked invalid, and is never written. A note with `type: idea` or `concept` but a `status` outside the list above appears under **Invalid**.
+
+**Property names are configurable** (Settings → Property names), so Seedbed can match templates you already have, for example `kind` instead of `type`. The values (`idea`, `seed`, and so on) stay the same. Changing a name does not rename properties in existing notes. `created` and `review` are always `YYYY-MM-DD` dates, and `source` and `created` deliberately match the names the Obsidian Web Clipper commonly uses.
 
 Your thinking trail is stored as callouts that are only appended to the end of the note, including the source label of each question:
 
@@ -75,15 +84,67 @@ Your thinking trail is stored as callouts that are only appended to the end of t
 > Answer: Compared to fetching it from the database.
 ```
 
-The plugin **never deletes note content**. It only appends callouts and edits properties that start with `bengkel-`.
+The plugin **never deletes note content**. It only appends callouts and edits its own properties (the names in Settings).
 
-Example Dataview query:
+### Templates
+
+Seedbed can create two ready-to-use Obsidian templates for you, so notes you start by hand are picked up too:
+
+- `Seedbed Idea.md` and `Seedbed Concept.md`, in your templates folder: the one set in Settings → Templates, otherwise the folder of the core *Templates* plugin (read from `.obsidian/templates.json`), otherwise `Templates/`.
+- They use **your property names** from Settings → Property names and the plugin language. The concept template includes the Feynman hints.
+- **Nothing is written silently.** The first time the plugin runs, it asks once: **Create** or **Later**. You can create them any time with the command **Create Seedbed templates** or the button in Settings → Templates.
+- **Existing files are never overwritten.** If a template already exists, it is skipped and Seedbed tells you.
+
+```markdown
+---
+type: idea
+status: seed
+created: {{date:YYYY-MM-DD}}
+review:
+gates: []
+---
+
+Write your idea here. It does not need to be tidy: capturing it comes first.
+```
+
+(The concept template is the same with `type: concept` and the Feynman hint callout and "My explanation" section.)
+
+**Dates fill themselves in.** When a note has `type: idea` or `concept` and its `created` or `review` is **empty** (for example a note you just made from a template), Seedbed fills it in: `created` = today and `review` = today plus the interval of the note's status. It only fills empty Seedbed properties: anything already filled, notes that are not Seedbed's, and properties that are missing altogether are left alone, and it never rewrites a note it has already filled.
+
+Using the **Templater** plugin instead of the core one? Use its own date syntax in a copy of the template, for example `created: <% tp.date.now("YYYY-MM-DD") %>`; keep `review:` empty. (Tested here with the core Templates plugin only.)
+
+### Example Dataview query
 
 ````markdown
 ```dataview
-TABLE bengkel-status, bengkel-tinjau FROM "Ide" WHERE bengkel-tipe = "ide"
+TABLE review, source
+FROM "Ide"
+WHERE type = "idea" AND status = "seed"
+SORT review ASC
 ```
 ````
+
+(Not run in this repository: Dataview is not installed in the test vault. If you changed the property names, use yours.)
+
+### Upgrading from 0.6
+
+0.7.0 renamed the properties and their values (the `[!pemicu]` callout is now `[!trigger]`):
+
+| 0.6 | 0.7 |
+|---|---|
+| `bengkel-tipe: ide / konsep` | `type: idea / concept` |
+| `bengkel-status: benih / tumbuh / matang / dibuang` | `status: seed / growing / mature / discarded` |
+| `bengkel-dibuat` | `created` |
+| `bengkel-tinjau` | `review` |
+| `bengkel-gerbang` | `gates` (values unchanged) |
+| `bengkel-sumber` | `source` |
+| `bengkel-asal` | `origin` |
+
+Nothing breaks when you upgrade:
+- **Old notes are still read** (also the `seedbed-*` names from 0.7 development builds). The Incubator shows the same ideas; old and new properties, even mixed in one note, are understood, and old `[!pemicu]` callouts keep their style.
+- **Writing converts, only Seedbed's own properties.** When the plugin changes an old note (Promote, Snooze, a gate, and so on), it converts that note's old properties in the same edit. Other properties are untouched.
+- **Convert everything at once** with the command **Migrate Seedbed properties**. It tells you how many notes it will change and asks first. It never overwrites: if a note already has the target property with a different value (for example `status: draft` from another template), that note is **skipped and listed in the result**, and nothing in it changes. Notes whose old type is not idea/concept are skipped too, so they stay visible under Invalid. Note content is never touched, and running it again does nothing.
+- **Your own Dataview queries or templates** that use `bengkel-*` names need updating after you migrate.
 
 ## Feynman mode
 
@@ -139,6 +200,51 @@ AI is used **only to ask questions**: Socratic and Devil's Advocate questions th
 
 **Subscription quota:** each adaptive Socratic question = 1 call; Devil's Advocate = 1 call for all 5 questions; each hint = 1 call. Settings shows the call count for the current session. Check each provider's terms of service before use.
 
+## Seedbed Capture (browser extension)
+
+Ideas that come up while browsing get lost because there's no time to write them down. **Seedbed Capture** is a companion Chrome extension that plants them straight into your Incubator.
+
+**How it works**
+1. Select text on any web page, right-click, and choose **Save as seed** (or press `Alt+Shift+S`).
+2. A small window shows the quote, the source page, and **one trigger question**, such as "Which part do you think isn't necessarily true?" You can swap the question, write a one-sentence answer, or leave it empty.
+3. Click **Save** (`Ctrl+Enter`). The extension opens an `obsidian://seedbed-capture` link; Seedbed checks it and creates a `seed` note in your Ideas folder.
+
+**Not a web clipper.** A clipper keeps what you read. Seedbed Capture keeps what you *think* about what you read: a short quote, a trigger question, and your answer, already inside the seed → growing → mature flow.
+
+**The note it creates**
+
+```markdown
+---
+type: idea
+status: seed
+created: 2026-11-12
+review: 2026-11-19
+source: https://example.com/article
+origin: capture
+---
+> [!quote] Quote — Page title
+> the selected text…
+> — [Page title](https://example.com/article)
+
+> [!trigger] Trigger question
+> Which part do you think isn't necessarily true?
+> Answer: …
+```
+
+**Keeping the pile small.** Capturing is easy, so it's easy to hoard. The extension warns you after 5 seeds a day (adjustable), and after each save Seedbed shows "Seed saved. N seeds not reviewed yet."
+
+**Safety**
+- Any website can try to open an `obsidian://` link, so Seedbed asks **"Save this capture as a seed?"** before saving (on by default; Settings → Captures from the extension).
+- A capture link can only create a **new, validated seed note**. It never reads, overwrites, or deletes notes.
+- All parameters are validated and escaped: only `http`/`https` source URLs, safe file names, length limits, and page text that can't inject frontmatter or extra callouts.
+- Max. 1 capture waiting for confirmation, plus a per-minute rate limit.
+
+**Settings in Seedbed:** confirm every capture (on), open the note after saving (off), quote character limit.
+
+**Extension facts:** Manifest V3, no server, no account, no network access, no telemetry. Quotes are cut to 1,000 characters by default. Without Seedbed installed, a fallback mode creates a plain note through Obsidian's `obsidian://new`. Installation and permissions are described in the extension's own README (`seedbed-capture/README.md`).
+
+**Tested:** Windows 11 + Chrome on Wikipedia, MDN, and paulgraham.com; capture-to-note time 0.26–0.34 s. Other browsers and operating systems are untested.
+
 ## Language
 
 The UI and question bank are available in English and Bahasa Indonesia (Settings → Language). Command names in the Command Palette change after the plugin reloads.
@@ -166,7 +272,11 @@ npm run install-test-vault  # copy the build into test-vault/.obsidian/plugins/s
 
 Open the `test-vault/` folder in Obsidian (**Open folder as vault**) and enable the plugin. Don't test in your main vault.
 
-Layout:
+Repository layout:
+- repository root: the Obsidian plugin (`manifest.json` must be here for Obsidian and for the release workflow)
+- [`extension/`](extension/README.md): the **Seedbed Capture** Chrome extension, a separate project with its own `package.json` and tests (`cd extension && npm ci && npm test && npm run build`); it is not part of the plugin release
+
+Plugin layout:
 - `src/domain`: pure logic, no `obsidian` imports
 - `src/adapter`: vault, frontmatter, cache, AI providers
 - `src/ui`: panels, modals, settings
@@ -183,4 +293,5 @@ Layout:
 
 ## License
 
-0-BSD.
+[MIT](LICENSE), copyright (c) 2026 Finarfin12.
+

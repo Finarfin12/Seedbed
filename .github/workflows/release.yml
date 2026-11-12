@@ -25,6 +25,7 @@ jobs:
           [ "$v" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} != manifest ${v}"; exit 1; }
       - run: npm test
       - run: npm run build
+      # Aset rilis HANYA berkas plugin di root (main.js, manifest.json, styles.css); extension/ tidak ikut.
       - name: Buat rilis (draft)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

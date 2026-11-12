@@ -1,5 +1,5 @@
 // Membandingkan test-vault/ terhadap snapshot baseline (.manual-baseline/): NF-6.
-// Aturan: badan catatan hanya boleh bertambah (awalan identik); baris frontmatter non-"bengkel-" identik.
+// Aturan: badan catatan hanya boleh bertambah (awalan identik); baris frontmatter non-"bengkel-"/"seedbed-" identik.
 // Snapshot dibuat manual sebelum uji (salin Ide/, Konsep/, Referensi/, "Catatan harian.md" ke .manual-baseline/).
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
@@ -20,8 +20,8 @@ const split = (t) => {
 	return m ? { fm: m[1].split(/\r?\n/), body: t.slice(m[0].length) } : { fm: [], body: t };
 };
 
-// Baris frontmatter milik plugin: kunci bengkel-* dan item list gerbang.
-const isOurs = (line) => /^bengkel-/.test(line) || /^\s+- (socratic|devil|feynman)$/.test(line);
+// Baris frontmatter milik plugin: kunci bengkel-*/seedbed-* dan item list gerbang.
+const isOurs = (line) => /^(bengkel-[a-z]+|seedbed-[a-z]+|type|status|created|review|gates|source|origin):/.test(line) || /^\s+- (socratic|devil|feynman)$/.test(line);
 
 let violations = 0;
 let bodyUnchanged = 0;

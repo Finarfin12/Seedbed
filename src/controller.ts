@@ -3,6 +3,7 @@ import type { App, TFile } from "obsidian";
 import type { IdeaIndex } from "./adapter/ideaIndex";
 import type { NoteFactory } from "./adapter/noteFactory";
 import type { NoteWriter } from "./adapter/noteWriter";
+import type { TemplateInstaller } from "./adapter/templateInstaller";
 import type { IdeaRepository } from "./adapter/repository";
 import type { TermSource } from "./adapter/termSource";
 import { formatCallout } from "./domain/callout";
@@ -10,6 +11,7 @@ import type { CalloutEntry } from "./domain/callout";
 import { toISODate } from "./domain/dates";
 import { analyze } from "./domain/feynman/analyzer";
 import type { Gap } from "./domain/feynman/analyzer";
+import { hasLegacyProps, planAdopt } from "./domain/frontmatter";
 import { devilGate } from "./domain/gates/devil";
 import { feynmanGate } from "./domain/gates/feynman";
 import { socraticGate } from "./domain/gates/socratic";
@@ -23,6 +25,7 @@ import { applyPatchFor } from "./domain/transition";
 import type { GateId, Idea, Settings, Status, Tipe } from "./domain/types";
 import { makeT } from "./i18n";
 import type { TFn } from "./i18n";
+import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
 import { PromptModal } from "./ui/promptModal";
 import type { HintFn, SessionEntry } from "./ui/session";
@@ -38,6 +41,8 @@ export interface PluginHost {
 	writer: NoteWriter;
 	termSource: TermSource;
 	factory: NoteFactory;
+	templates: TemplateInstaller;
+	refreshTemplateFolder(): Promise<void>;
 	getQuestionService(): QuestionService;
 	saveSettings(): Promise<void>;
 	openIncubator(): Promise<void>;
@@ -96,6 +101,68 @@ export class Controller {
 		}).open();
 	}
 
+	/** Perintah "Migrate Seedbed properties": ubah catatan berproperti lama, dengan konfirmasi. Konflik dilewati dan didaftar. */
+	migrateProperties(): void {
+		const t = this.t;
+		const names = this.settings.properties;
+		const files = this.app.vault
+			.getMarkdownFiles()
+			.filter((f) => hasLegacyProps(this.app.metadataCache.getFileCache(f)?.frontmatter as Record<string, unknown> | undefined, names));
+		if (files.length === 0) {
+			new Notice(t("migrate.none"));
+			return;
+		}
+		new ConfirmModal(this.app, t("migrate.title"), t("migrate.body", { n: files.length }), t("btn.cancel"), t("migrate.confirm"), (ok) => {
+			if (!ok) return;
+			void this.safe(async () => {
+				let done = 0;
+				let failed = 0;
+				const skipped: string[] = [];
+				for (const f of files) {
+					try {
+						const r = await this.host.repo.migrate(f);
+						if (r.conflict) skipped.push(f.path);
+						else if (r.changed) done++;
+					} catch (e) {
+						failed++;
+						console.error("[seedbed] migrate", f.path, e);
+					}
+				}
+				const summary = t("migrate.done", { n: done, skipped: skipped.length, failed });
+				if (skipped.length === 0) {
+					new Notice(summary);
+					return;
+				}
+				const shown = skipped.slice(0, 25);
+				if (skipped.length > shown.length) shown.push(t("migrate.more", { n: skipped.length - shown.length }));
+				new ConfirmModal(this.app, t("migrate.title"), `${summary} ${t("migrate.skippedHint")}`, "", t("btn.ok"), () => undefined, shown).open();
+			});
+		}).open();
+	}
+
+	/** Perintah "Create Seedbed templates": tidak pernah menimpa; melaporkan yang dibuat dan yang dilewati. */
+	async createTemplates(): Promise<void> {
+		const t = this.t;
+		const r = await this.host.templates.create();
+		await this.host.refreshTemplateFolder();
+		const parts: string[] = [];
+		if (r.created.length > 0) parts.push(t("templates.created", { n: r.created.length, folder: r.folder || "/" }));
+		if (r.skipped.length > 0) parts.push(t("templates.skipped", { names: r.skipped.join(", ") }));
+		new Notice(parts.join(" "));
+	}
+
+	/** Tawaran sekali saat plugin pertama kali aktif: tidak menulis apa pun tanpa persetujuan. */
+	async offerTemplates(): Promise<void> {
+		if (this.settings.templates.offered) return;
+		const t = this.t;
+		const folder = await this.host.templates.folder();
+		this.settings.templates.offered = true;
+		await this.host.saveSettings();
+		new ConfirmModal(this.app, t("templates.offer.title"), t("templates.offer.body", { folder }), t("templates.offer.later"), t("templates.offer.create"), (ok) => {
+			if (ok) void this.safe(() => this.createTemplates());
+		}).open();
+	}
+
 	startFeynman(): void {
 		const t = this.t;
 		new PromptModal(this.app, t, t("prompt.feynmanTitle"), t("prompt.feynmanLabel"), (title) => {
@@ -121,13 +188,17 @@ export class Controller {
 			return;
 		}
 		const today = this.today();
-		await this.host.repo.write(file, {
-			tipe,
-			status: "benih",
-			dibuat: today,
-			tinjau: nextReview("benih", today, this.settings),
-			gerbang: [],
-		});
+		// Catatan yang sudah punya type/status dari template lain tidak ditimpa (nama properti umum mudah bentrok).
+		const plan = planAdopt(
+			this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined,
+			{ tipe, status: "benih", dibuat: today, tinjau: nextReview("benih", today, this.settings), gerbang: [] },
+			this.settings.properties,
+		);
+		if (!plan.ok) {
+			new Notice(this.t("notice.adoptConflict", { key: plan.key }));
+			return;
+		}
+		await this.host.repo.write(file, plan.patch);
 		new Notice(this.t(tipe === "ide" ? "notice.madeIdea" : "notice.madeConcept", { name: file.basename }));
 	}
 

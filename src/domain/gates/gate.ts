@@ -20,7 +20,7 @@ export interface Gate {
 	id: GateId;
 	/** Apakah gerbang ini relevan (dan aktif) untuk transisi from -> to. */
 	appliesTo(idea: Idea, from: Status, to: Status, settings: Settings): boolean;
-	/** Sudah pernah dilewati? (frontmatter bengkel-gerbang) */
+	/** Sudah pernah dilewati? (frontmatter seedbed-gates) */
 	isPassed(idea: Idea): boolean;
 	evaluate(input: GateInput): GateOutcome;
 }
