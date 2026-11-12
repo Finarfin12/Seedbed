@@ -1,0 +1,203 @@
+/* Seedbed: panel, modal, dan callout kustom. Warna mengikuti tema (light/dark). */
+
+/* ---- Callout kustom (jejak berpikir) ---- */
+.callout[data-callout="socratic"] {
+	--callout-color: 59, 130, 246;
+	--callout-icon: lucide-messages-square;
+}
+.callout[data-callout="devil"] {
+	--callout-color: 220, 38, 38;
+	--callout-icon: lucide-flame;
+}
+.callout[data-callout="feynman-hint"] {
+	--callout-color: 234, 179, 8;
+	--callout-icon: lucide-lightbulb;
+}
+
+/* ---- Panel ---- */
+.bengkel-view {
+	padding: var(--size-4-3);
+}
+.bengkel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-4-2);
+}
+.bengkel-header h4 {
+	margin: 0;
+}
+.bengkel-badge {
+	font-size: var(--font-ui-smaller);
+	padding: 2px var(--size-4-2);
+	border-radius: var(--radius-m);
+	background: var(--background-modifier-hover);
+	color: var(--text-muted);
+}
+.bengkel-section {
+	margin-top: var(--size-4-4);
+}
+.bengkel-section summary {
+	cursor: pointer;
+	font-weight: var(--font-semibold);
+	margin-bottom: var(--size-4-2);
+}
+.bengkel-section summary:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 2px;
+}
+.bengkel-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-4-2);
+}
+.bengkel-item {
+	padding: var(--size-4-2) var(--size-4-3);
+	border: 1px solid var(--background-modifier-border);
+	border-left-width: 4px;
+	border-radius: var(--radius-m);
+	background: var(--background-primary);
+}
+.bengkel-item.status-benih { border-left-color: var(--color-green); }
+.bengkel-item.status-tumbuh { border-left-color: var(--color-blue); }
+.bengkel-item.status-matang { border-left-color: var(--color-purple); }
+.bengkel-item.status-dibuang { border-left-color: var(--text-faint); opacity: 0.75; }
+.bengkel-item.is-invalid { border-left-color: var(--color-red); }
+.bengkel-item.is-ignored { opacity: 0.55; }
+.bengkel-item-top {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--size-4-2);
+}
+.bengkel-title {
+	font-weight: var(--font-medium);
+	overflow-wrap: anywhere;
+}
+.bengkel-tag {
+	flex-shrink: 0;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+.bengkel-meta {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	overflow-wrap: anywhere;
+}
+.bengkel-empty {
+	color: var(--text-muted);
+	font-style: italic;
+}
+.bengkel-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-4-1);
+	margin-top: var(--size-4-2);
+}
+.bengkel-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-4-1);
+	/* Target sentuh >= 44px di layar sentuh */
+	min-height: var(--input-height);
+}
+.bengkel-btn-icon {
+	display: inline-flex;
+}
+.bengkel-btn-icon svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+}
+.is-mobile .bengkel-btn,
+.is-mobile .bengkel-modal-buttons button {
+	min-height: 44px;
+}
+.bengkel-gate-status {
+	margin: var(--size-4-2) 0;
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+}
+
+/* ---- Status bar ---- */
+.bengkel-statusbar {
+	cursor: pointer;
+}
+.bengkel-statusbar.is-empty {
+	opacity: 0.6;
+}
+
+/* ---- Modal ---- */
+.bengkel-prompt-input {
+	width: 100%;
+}
+.bengkel-answer {
+	width: 100%;
+	resize: vertical;
+}
+.bengkel-question {
+	font-size: var(--font-ui-medium);
+}
+.bengkel-progress {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+.bengkel-counter.is-short {
+	color: var(--text-error);
+}
+.bengkel-counter {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+.bengkel-devil-block {
+	margin-bottom: var(--size-4-3);
+}
+.bengkel-modal-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--size-4-2);
+	margin-top: var(--size-4-3);
+}
+
+/* ---- AI (Addendum 07) ---- */
+.bengkel-source {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+.bengkel-hint {
+	margin: var(--size-4-2) 0;
+	padding: var(--size-4-2) var(--size-4-3);
+	border-left: 3px solid var(--interactive-accent);
+	background: var(--background-secondary);
+	border-radius: var(--radius-s);
+}
+.bengkel-hint p {
+	margin: var(--size-4-1) 0 0;
+}
+.bengkel-tools {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-4-2);
+	margin: var(--size-4-2) 0;
+}
+.bengkel-flag[aria-pressed="true"] {
+	color: var(--text-warning);
+}
+.bengkel-loading {
+	color: var(--text-muted);
+	font-style: italic;
+}
+.bengkel-warn {
+	color: var(--text-warning);
+	font-weight: var(--font-semibold);
+}
+/* Tombol Simpan/status tetap terlihat saat modal Devil menggulir (5 pertanyaan). */
+.bengkel-sticky-footer {
+	position: sticky;
+	bottom: calc(var(--size-4-4) * -1);
+	background: var(--background-primary);
+	padding-top: var(--size-4-2);
+	border-top: 1px solid var(--background-modifier-border);
+}

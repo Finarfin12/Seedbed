@@ -1,0 +1,61 @@
+{
+	"socratic": {
+		"klarifikasi": [
+			"Apa persisnya yang kamu maksud dengan ide ini? Jelaskan dalam dua kalimat tanpa istilah yang kabur.",
+			"Kalau ada orang yang belum tahu apa-apa, bagaimana kamu menjelaskan ide ini kepadanya?",
+			"Beri satu contoh nyata yang menggambarkan ide ini bekerja. Seperti apa kejadiannya?"
+		],
+		"asumsi": [
+			"Apa yang kamu anggap benar begitu saja supaya ide ini berhasil?",
+			"Asumsi mana yang paling berisiko? Apa yang terjadi kalau asumsi itu salah?",
+			"Apa yang kamu yakini tentang pengguna atau situasinya, padahal belum kamu cek?"
+		],
+		"bukti": [
+			"Apa bukti atau pengalaman yang membuatmu yakin ide ini layak dikejar?",
+			"Dari mana kamu tahu masalah yang ingin diselesaikan ide ini benar-benar ada?",
+			"Bukti apa yang akan membuatmu berubah pikiran dan meninggalkan ide ini?"
+		],
+		"sudutPandang": [
+			"Bagaimana orang yang tidak setuju akan memandang ide ini? Apa alasan mereka?",
+			"Siapa yang paling diuntungkan dan siapa yang paling dirugikan oleh ide ini?",
+			"Bagaimana seorang ahli di bidang ini akan menilai ide ini?"
+		],
+		"implikasi": [
+			"Kalau ide ini berhasil, apa yang berubah setelahnya, baik yang diharapkan maupun tidak?",
+			"Apa langkah pertama yang konkret, dan apa konsekuensi dari langkah itu?",
+			"Apa yang harus kamu korbankan atau hentikan supaya ide ini bisa jalan?"
+		],
+		"pertanyaan": [
+			"Pertanyaan apa yang sebenarnya coba dijawab oleh ide ini?",
+			"Apakah pertanyaan yang kamu ajukan sudah tepat? Adakah pertanyaan yang lebih baik?",
+			"Apa yang masih belum kamu ketahui tentang ide ini, dan bagaimana cara mencari tahunya?"
+		]
+	},
+	"devil": {
+		"asumsi": [
+			"Sebutkan tiga asumsi tersembunyi di balik ide ini. Mana yang paling rapuh?",
+			"Apa yang harus benar di dunia luar agar ide ini berhasil, padahal di luar kendalimu?",
+			"Asumsi apa yang akan ditertawakan orang yang berpengalaman?"
+		],
+		"kebalikan": [
+			"Bagaimana kalau kebalikan dari ide ini yang benar? Apa argumen terbaiknya?",
+			"Kalau kamu harus melakukan hal yang berlawanan, apa yang akan kamu lakukan dan mengapa itu bisa lebih baik?",
+			"Adakah kondisi di mana ide ini justru memperburuk keadaan?"
+		],
+		"bukti": [
+			"Bukti apa yang paling lemah dalam ide ini? Bagian mana yang hanya firasat?",
+			"Apa yang kamu abaikan karena tidak cocok dengan idemu?",
+			"Data atau kejadian apa yang bisa membantah ide ini, dan sudahkah kamu mencarinya?"
+		],
+		"lawan": [
+			"Siapa yang akan menentang ide ini dengan keras, dan apa argumen terkuat mereka?",
+			"Kalau pesaing atau pengkritik menyerang ide ini, bagian mana yang pertama mereka serang?",
+			"Mengapa orang lain yang pintar belum melakukan ide ini? Apa yang mereka ketahui dan kamu tidak?"
+		],
+		"kegagalan": [
+			"Bayangkan setahun lagi ide ini gagal total. Apa penyebab paling mungkin?",
+			"Kegagalan apa yang paling mahal, dan bagaimana cara mengetahuinya lebih awal?",
+			"Apa tanda peringatan pertama bahwa ide ini sedang menuju kegagalan?"
+		]
+	}
+}

@@ -1,0 +1,33 @@
+name: Release
+
+# Dipicu oleh tag versi (tanpa awalan "v"), mis. 0.5.0. Tag HARUS sama dengan "version" di manifest.json.
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Cek tag = versi manifest
+        run: |
+          v=$(node -p "require('./manifest.json').version")
+          [ "$v" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} != manifest ${v}"; exit 1; }
+      - run: npm test
+      - run: npm run build
+      - name: Buat rilis (draft)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" main.js manifest.json styles.css \
+            --title "${GITHUB_REF_NAME}" --notes-file CHANGELOG.md --draft

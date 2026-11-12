@@ -1,0 +1,61 @@
+{
+	"socratic": {
+		"klarifikasi": [
+			"What exactly do you mean by this idea? Explain it in two sentences without vague terms.",
+			"If someone knew nothing about it, how would you explain this idea to them?",
+			"Give one concrete example of this idea at work. What does it look like?"
+		],
+		"asumsi": [
+			"What are you taking for granted for this idea to succeed?",
+			"Which assumption is the riskiest? What happens if it turns out to be wrong?",
+			"What do you believe about the users or the situation that you have not checked yet?"
+		],
+		"bukti": [
+			"What evidence or experience makes you confident this idea is worth pursuing?",
+			"How do you know the problem this idea solves really exists?",
+			"What evidence would make you change your mind and drop this idea?"
+		],
+		"sudutPandang": [
+			"How would someone who disagrees see this idea? What are their reasons?",
+			"Who benefits most and who loses most from this idea?",
+			"How would an expert in this field judge the idea?"
+		],
+		"implikasi": [
+			"If this idea works, what changes afterwards, both expected and unexpected?",
+			"What is the first concrete step, and what follows from taking it?",
+			"What must you give up or stop doing so this idea can move forward?"
+		],
+		"pertanyaan": [
+			"What question is this idea actually trying to answer?",
+			"Is that the right question? Is there a better one to ask?",
+			"What do you still not know about this idea, and how could you find out?"
+		]
+	},
+	"devil": {
+		"asumsi": [
+			"Name three hidden assumptions behind this idea. Which is the most fragile?",
+			"What must be true in the outside world for this idea to work, even though you do not control it?",
+			"Which assumption would an experienced person laugh at?"
+		],
+		"kebalikan": [
+			"What if the opposite of this idea were true? What is the best argument for it?",
+			"If you had to do the opposite, what would you do and why might it be better?",
+			"Is there a situation where this idea makes things worse?"
+		],
+		"bukti": [
+			"What is the weakest evidence in this idea? Which parts are only a hunch?",
+			"What are you ignoring because it does not fit your idea?",
+			"What data or events could refute this idea, and have you looked for them?"
+		],
+		"lawan": [
+			"Who would oppose this idea strongly, and what is their strongest argument?",
+			"If a competitor or critic attacked this idea, which part would they hit first?",
+			"Why have other smart people not done this yet? What do they know that you do not?"
+		],
+		"kegagalan": [
+			"Imagine this idea has failed completely a year from now. What is the most likely cause?",
+			"What would the most expensive failure be, and how could you find out earlier?",
+			"What is the first warning sign that this idea is heading for failure?"
+		]
+	}
+}

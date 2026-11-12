@@ -1,0 +1,6 @@
+---
+aliases:
+  - Entropy
+---
+
+Ukuran ketidakteraturan.

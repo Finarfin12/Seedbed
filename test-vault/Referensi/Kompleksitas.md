@@ -1,0 +1,1 @@
+Seberapa mahal sebuah proses.
