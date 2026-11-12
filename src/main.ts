@@ -6,8 +6,11 @@ import { detectProviders } from "./adapter/ai/detector";
 import type { Detection } from "./adapter/ai/detector";
 import { ObsidianHttp } from "./adapter/ai/obsidianHttp";
 import { findExecutable, makeSandboxDir, NodeProcessRunner } from "./adapter/ai/runner";
+import { CaptureHandler } from "./adapter/captureHandler";
 import { IdeaIndex } from "./adapter/ideaIndex";
 import { NoteFactory } from "./adapter/noteFactory";
+import { TemplateInstaller } from "./adapter/templateInstaller";
+import { isInTemplateFolder, planAutofill } from "./domain/templateFiles";
 import { NoteWriter } from "./adapter/noteWriter";
 import { IdeaRepository } from "./adapter/repository";
 import { TermSource } from "./adapter/termSource";
@@ -33,6 +36,14 @@ export default class SeedbedPlugin extends Plugin {
 	writer!: NoteWriter;
 	termSource!: TermSource;
 	factory!: NoteFactory;
+	templates!: TemplateInstaller;
+	/** Folder templat (di-cache sinkron untuk indeks); diperbarui saat start, saat pengaturan berubah, dan saat membuat templat. */
+	templateFolder = "Templates";
+
+	async refreshTemplateFolder(): Promise<void> {
+		this.templateFolder = await this.templates.folder();
+		this.rebuildIndex(false);
+	}
 	provider!: StaticQuestionProvider;
 	controller!: Controller;
 	private questionService!: QuestionService;
@@ -45,11 +56,12 @@ export default class SeedbedPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		this.index = new IdeaIndex(this.app);
-		this.repo = new IdeaRepository(this.app, this.index);
+		this.index = new IdeaIndex(this.app, () => this.settings.properties, (p) => isInTemplateFolder(p, this.templateFolder));
+		this.repo = new IdeaRepository(this.app, this.index, () => this.settings.properties);
 		this.writer = new NoteWriter(this.app);
 		this.termSource = new TermSource(this.app);
 		this.factory = new NoteFactory(this.app);
+		this.templates = new TemplateInstaller(this.app, () => this.settings);
 		this.provider = new StaticQuestionProvider(BASE_BANKS);
 		this.controller = new Controller(this);
 		this.rebuildQuestionService();
@@ -59,6 +71,9 @@ export default class SeedbedPlugin extends Plugin {
 		this.registerView(GAPS_VIEW, (leaf: WorkspaceLeaf) => new FeynmanGapsView(leaf, c, this.index));
 		this.addSettingTab(new BengkelSettingTab(this.app, this));
 		this.registerCommands();
+		// Tangkapan dari ekstensi Chrome "Seedbed Capture". Penangan memvalidasi semua parameter.
+		const capture = new CaptureHandler(() => ({ app: this.app, settings: this.settings, index: this.index, repo: this.repo, factory: this.factory }));
+		this.registerObsidianProtocolHandler("seedbed-capture", capture.handle);
 
 		this.addRibbonIcon("lightbulb", c.t("cmd.openIncubator"), () => void this.openIncubator());
 
@@ -73,6 +88,7 @@ export default class SeedbedPlugin extends Plugin {
 			this.app.metadataCache.on("changed", (file) => {
 				this.index.updateFile(file);
 				this.termSource.invalidate();
+				this.scheduleAutofill(file);
 			}),
 		);
 		this.registerEvent(
@@ -92,6 +108,8 @@ export default class SeedbedPlugin extends Plugin {
 
 		this.app.workspace.onLayoutReady(() => {
 			this.rebuildIndex(false);
+			void this.refreshTemplateFolder();
+			window.setTimeout(() => void this.controller.safe(() => this.controller.offerTemplates()), 1500);
 			void this.loadQuestionBank(false);
 			// Saat startup, metadata cache bisa belum lengkap; bangun ulang sekali lagi saat 'resolved'.
 			const ref = this.app.metadataCache.on("resolved", () => {
@@ -120,6 +138,8 @@ export default class SeedbedPlugin extends Plugin {
 		this.addCommand({ id: "challenge", name: t("cmd.challenge"), callback: run(() => c.challengeActive()) });
 		this.addCommand({ id: "start-feynman", name: t("cmd.startFeynman"), callback: run(() => c.startFeynman()) });
 		this.addCommand({ id: "check-feynman", name: t("cmd.checkFeynman"), callback: run(() => c.checkFeynmanActive()) });
+		this.addCommand({ id: "create-templates", name: t("cmd.createTemplates"), callback: run(() => c.createTemplates()) });
+		this.addCommand({ id: "migrate-properties", name: t("cmd.migrate"), callback: run(() => c.migrateProperties()) });
 		this.addCommand({ id: "open-incubator", name: t("cmd.openIncubator"), callback: run(() => this.openIncubator()) });
 		this.addCommand({
 			id: "open-gaps",
@@ -188,6 +208,50 @@ export default class SeedbedPlugin extends Plugin {
 			if (leaf.view instanceof IncubatorView) leaf.view.refresh();
 		}
 		this.updateStatusBar();
+	}
+
+	// ---------- Isi otomatis created/review (catatan dari templat) ----------
+
+	private autofillTimers = new Map<string, number>();
+	private autofillBusy = new Set<string>();
+	private autofillRecent = new Map<string, number>();
+
+	/**
+	 * Catatan Seedbed yang created/review-nya kosong (mis. baru dari templat Templates/Templater) diisi: created = hari ini,
+	 * review = sesuai interval status. Ditunda sebentar (templat menulis beberapa kali), dibaca ulang dari cache saat
+	 * dijalankan, dan dijaga dari loop tulis: sedang berjalan, baru saja diisi, dan hasil isiannya tidak kosong lagi.
+	 */
+	private scheduleAutofill(file: TFile): void {
+		if (file.extension !== "md") return;
+		const prev = this.autofillTimers.get(file.path);
+		if (prev !== undefined) window.clearTimeout(prev);
+		this.autofillTimers.set(
+			file.path,
+			window.setTimeout(() => {
+				this.autofillTimers.delete(file.path);
+				void this.runAutofill(file);
+			}, 900),
+		);
+	}
+
+	private async runAutofill(file: TFile): Promise<void> {
+		const path = file.path;
+		if (this.autofillBusy.has(path)) return;
+		const last = this.autofillRecent.get(path);
+		if (last !== undefined && Date.now() - last < 5000) return;
+		if (isInTemplateFolder(path, this.templateFolder)) return; // berkas templat itu sendiri
+		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+		const patch = planAutofill(fm, this.settings.properties, this.controller.today(), this.settings);
+		if (!patch) return;
+		this.autofillBusy.add(path);
+		try {
+			await this.repo.write(file, patch);
+			this.autofillRecent.set(path, Date.now());
+		} catch (e) {
+			console.error("[seedbed] autofill", path, e);
+		} finally {
+			this.autofillBusy.delete(path);
+		}
 	}
 
 	// ---------- Index & status bar ----------

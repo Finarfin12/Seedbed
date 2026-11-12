@@ -1,3 +1,5 @@
+import { DEFAULT_NAMES, sanitizeNames } from "./frontmatter";
+import { cleanFolder } from "./templateFiles";
 import { DEFAULT_AI, PROVIDER_IDS } from "./ai/types";
 import type { AiSettings, CliTool, LocalKind, ProviderId, SocraticMode } from "./ai/types";
 import type { Language, Settings } from "./types";
@@ -16,6 +18,9 @@ export const DEFAULT_SETTINGS: Settings = {
 	notifyOnStartup: true,
 	customBankPath: "",
 	ai: structuredClone(DEFAULT_AI),
+	capture: { confirm: true, openAfter: false, maxChars: 2000 },
+	properties: { ...DEFAULT_NAMES },
+	templates: { folder: "", offered: false },
 };
 
 function num(v: unknown, fallback: number, min: number, max: number): number {
@@ -90,6 +95,8 @@ export function mergeSettings(loaded: unknown, defaults: Settings = DEFAULT_SETT
 	const iv = isRecord(loaded.intervals) ? loaded.intervals : {};
 	const gt = isRecord(loaded.gates) ? loaded.gates : {};
 	const fy = isRecord(loaded.feynman) ? loaded.feynman : {};
+	const cp = isRecord(loaded.capture) ? loaded.capture : {};
+	const tp = isRecord(loaded.templates) ? loaded.templates : {};
 	const ignoredRaw = isRecord(fy.ignored) ? fy.ignored : {};
 	const ignored: Record<string, string[]> = {};
 	for (const [path, list] of Object.entries(ignoredRaw)) {
@@ -123,5 +130,15 @@ export function mergeSettings(loaded: unknown, defaults: Settings = DEFAULT_SETT
 		notifyOnStartup: bool(loaded.notifyOnStartup, d.notifyOnStartup),
 		customBankPath: str(loaded.customBankPath, d.customBankPath),
 		ai: mergeAi(loaded.ai, d.ai),
+		capture: {
+			confirm: bool(cp.confirm, d.capture.confirm),
+			openAfter: bool(cp.openAfter, d.capture.openAfter),
+			maxChars: num(cp.maxChars, d.capture.maxChars, 200, 20000),
+		},
+		properties: sanitizeNames(loaded.properties),
+		templates: {
+			folder: cleanFolder(tp.folder),
+			offered: bool(tp.offered, d.templates.offered),
+		},
 	};
 }

@@ -1,6 +1,9 @@
-import { PluginSettingTab, Setting } from "obsidian";
+import { Notice, PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
 import type SeedbedPlugin from "../main";
+import { checkName, DEFAULT_NAMES, FIELDS } from "../domain/frontmatter";
+import { cleanFolder } from "../domain/templateFiles";
+import type { Key } from "../i18n/id";
 import type { ActiveStatus, GateId, Language } from "../domain/types";
 import { renderAiSettings } from "./settingsAi";
 
@@ -173,6 +176,72 @@ export class BengkelSettingTab extends PluginSettingTab {
 				}),
 			);
 
+		new Setting(containerEl).setName(t("set.props")).setHeading();
+		containerEl.createEl("p", { text: t("set.props.desc"), cls: "setting-item-description" });
+		for (const field of FIELDS) {
+			new Setting(containerEl).setName(t(`set.props.${field}` as Key)).addText((c) => {
+				c.setValue(s.properties[field]);
+				// "change" = Enter atau kehilangan fokus (bukan tiap ketikan), supaya indeks tidak dibangun dengan nama setengah jadi.
+				c.inputEl.addEventListener("change", () => {
+					const value = c.inputEl.value.trim();
+					const problem = checkName(s.properties, field, value);
+					if (problem) {
+						new Notice(t(problem === "invalid" ? "set.props.invalid" : "set.props.duplicate"));
+						c.setValue(s.properties[field]);
+						return;
+					}
+					s.properties[field] = value;
+					void save().then(() => this.plugin.rebuildIndex(false));
+				});
+			});
+		}
+		new Setting(containerEl).addButton((b) =>
+			b.setButtonText(t("set.props.reset")).onClick(async () => {
+				s.properties = { ...DEFAULT_NAMES };
+				await save();
+				this.plugin.rebuildIndex(false);
+				this.redisplay();
+			}),
+		);
+
+		new Setting(containerEl).setName(t("set.templates")).setHeading();
+		containerEl.createEl("p", { text: t("set.templates.desc"), cls: "setting-item-description" });
+		new Setting(containerEl)
+			.setName(t("set.templates.folder"))
+			.setDesc(t("set.templates.folder.desc"))
+			.addText((c) => {
+				c.setValue(s.templates.folder);
+				c.inputEl.addEventListener("change", () => {
+					s.templates.folder = cleanFolder(c.inputEl.value);
+					c.setValue(s.templates.folder);
+					void save().then(() => this.plugin.refreshTemplateFolder());
+				});
+				void this.plugin.templates.folder().then((f) => c.setPlaceholder(f));
+			});
+		new Setting(containerEl).addButton((b) =>
+			b.setButtonText(t("set.templates.btn")).onClick(() => void this.plugin.controller.safe(() => this.plugin.controller.createTemplates())),
+		);
+
+		new Setting(containerEl).setName(t("set.capture")).setHeading();
+		containerEl.createEl("p", { text: t("set.capture.intro"), cls: "setting-item-description" });
+		new Setting(containerEl)
+			.setName(t("set.capture.confirm"))
+			.setDesc(t("set.capture.confirm.desc"))
+			.addToggle((c) =>
+				c.setValue(s.capture.confirm).onChange(async (v) => {
+					s.capture.confirm = v;
+					await save();
+				}),
+			);
+		new Setting(containerEl)
+			.setName(t("set.capture.openAfter"))
+			.addToggle((c) =>
+				c.setValue(s.capture.openAfter).onChange(async (v) => {
+					s.capture.openAfter = v;
+					await save();
+				}),
+			);
+		number(containerEl, t("set.capture.maxChars"), "", () => s.capture.maxChars, (v) => (s.capture.maxChars = v), 200, 20000);
 		renderAiSettings(this.plugin, containerEl, () => this.redisplay());
 
 		new Setting(containerEl).setName(t("set.maintenance")).setHeading();

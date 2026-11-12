@@ -1,3 +1,4 @@
+import type { PropNames } from "./frontmatter";
 // Tipe inti domain. Tidak boleh mengimpor "obsidian".
 import type { AiSettings } from "./ai/types";
 
@@ -22,6 +23,8 @@ export interface Idea {
 	dibuat?: string;
 	tinjau?: string;
 	gerbang: GateId[];
+	/** Asal catatan (mis. "capture"). */
+	asal?: string;
 }
 
 /** Catatan yang punya properti bengkel-* tetapi nilainya salah. */
@@ -62,4 +65,26 @@ export interface Settings {
 	customBankPath: string;
 	/** Fitur AI (Addendum 07). Mati secara default. */
 	ai: AiSettings;
+	/** Tangkapan dari ekstensi Seedbed Capture (obsidian://seedbed-capture). */
+	capture: CaptureSettings;
+	/** Nama properti frontmatter milik Seedbed (default: type, status, created, review, gates, source, origin). */
+	properties: PropNames;
+	/** Templat Obsidian milik Seedbed (Seedbed Idea.md / Seedbed Concept.md). */
+	templates: TemplateSettings;
+}
+
+export interface TemplateSettings {
+	/** Folder templat. Kosong = ikuti folder plugin inti Templates, selain itu `Templates`. */
+	folder: string;
+	/** Tawaran "Buat templat Seedbed" sudah ditampilkan sekali (apa pun jawabannya). */
+	offered: boolean;
+}
+
+export interface CaptureSettings {
+	/** Tampilkan modal konfirmasi sebelum menyimpan (default AKTIF: situs mana pun bisa membuka link obsidian://). */
+	confirm: boolean;
+	/** Buka catatan setelah tersimpan. */
+	openAfter: boolean;
+	/** Batas karakter kutipan di sisi plugin. */
+	maxChars: number;
 }
