@@ -4,7 +4,7 @@ import type { GateId, Idea, Settings, Status } from "./types";
 
 /**
  * Hitung patch frontmatter untuk berpindah ke status `to`.
- * `passedGate` dicatat ke bengkel-gerbang (tanpa duplikat).
+ * `passedGate` dicatat ke seedbed-gates (tanpa duplikat).
  * Tanggal tinjau dihitung ulang; `dibuang` menghapus tanggal tinjau.
  */
 export function applyPatchFor(

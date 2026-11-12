@@ -187,16 +187,16 @@ describe("callout formatting", () => {
 describe("templates", () => {
 	it("new idea note has plugin frontmatter with review date", () => {
 		const c = newNoteContent("ide", "2026-11-11", S, "id");
-		expect(c).toContain("bengkel-tipe: ide");
-		expect(c).toContain("bengkel-status: benih");
-		expect(c).toContain("bengkel-dibuat: 2026-11-11");
-		expect(c).toContain("bengkel-tinjau: 2026-11-18");
+		expect(c).toContain("type: idea\n");
+		expect(c).toContain("status: seed\n");
+		expect(c).toContain("created: 2026-11-11\n");
+		expect(c).toContain("review: 2026-11-18\n");
 		expect(c.startsWith("---\n")).toBe(true);
 	});
 	it("feynman note is a konsep with the 4-step hint callout (both languages)", () => {
 		for (const lang of ["id", "en"] as const) {
 			const c = newNoteContent("konsep", "2026-11-11", S, lang, true);
-			expect(c).toContain("bengkel-tipe: konsep");
+			expect(c).toContain("type: concept\n");
 			expect(c).toContain("[!feynman-hint]");
 			expect((c.match(/^> \d\./gm) ?? []).length).toBe(4);
 		}

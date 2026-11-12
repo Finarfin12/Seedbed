@@ -1,8 +1,8 @@
-import { KEY } from "./frontmatter";
+import { storedStatus, storedTipe } from "./frontmatter";
 import { nextReview } from "./scheduler";
 import type { Language, Settings, Tipe } from "./types";
 
-const BODY = {
+export const BODY = {
 	id: {
 		ide: "Tulis idemu di sini. Tak perlu rapi: yang penting tertangkap dulu.\n",
 		feynman: [
@@ -42,13 +42,14 @@ export function newNoteContent(
 	feynman = false,
 ): string {
 	const tinjau = nextReview("benih", today, settings);
+	const names = settings.properties;
 	const fm = [
 		"---",
-		`${KEY.tipe}: ${tipe}`,
-		`${KEY.status}: benih`,
-		`${KEY.dibuat}: ${today}`,
-		`${KEY.tinjau}: ${tinjau}`,
-		`${KEY.gerbang}: []`,
+		`${names.type}: ${storedTipe(tipe)}`,
+		`${names.status}: ${storedStatus("benih")}`,
+		`${names.created}: ${today}`,
+		`${names.review}: ${tinjau}`,
+		`${names.gates}: []`,
 		"---",
 		"",
 	].join("\n");

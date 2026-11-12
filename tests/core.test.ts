@@ -91,17 +91,17 @@ describe("settings merge", () => {
 });
 
 describe("frontmatter parse", () => {
-	it("ignores notes without bengkel- keys", () => {
+	it("ignores notes without Seedbed properties", () => {
 		expect(parseIdeaNote("a.md", "a", { title: "x" }).kind).toBe("none");
 		expect(parseIdeaNote("a.md", "a", undefined).kind).toBe("none");
 	});
 	it("parses a valid idea", () => {
 		const r = parseIdeaNote("a.md", "a", {
-			[KEY.tipe]: "ide",
-			[KEY.status]: "tumbuh",
-			[KEY.dibuat]: "2026-11-01",
-			[KEY.tinjau]: "2026-11-15",
-			[KEY.gerbang]: ["socratic", "bogus", "socratic"],
+			[KEY.type]: "idea",
+			[KEY.status]: "growing",
+			[KEY.created]: "2026-11-01",
+			[KEY.review]: "2026-11-15",
+			[KEY.gates]: ["socratic", "bogus", "socratic"],
 		});
 		expect(r).toEqual({
 			kind: "idea",
@@ -118,10 +118,10 @@ describe("frontmatter parse", () => {
 	});
 	it("accepts Date objects and single-string gates, case-insensitive status", () => {
 		const r = parseIdeaNote("a.md", "a", {
-			[KEY.tipe]: "Konsep",
-			[KEY.status]: " BENIH ",
-			[KEY.tinjau]: new Date("2026-11-20T00:00:00Z"),
-			[KEY.gerbang]: "feynman",
+			[KEY.type]: "Concept",
+			[KEY.status]: " SEED ",
+			[KEY.review]: new Date("2026-11-20T00:00:00Z"),
+			[KEY.gates]: "feynman",
 		});
 		expect(r.kind).toBe("idea");
 		if (r.kind === "idea") {
@@ -131,34 +131,36 @@ describe("frontmatter parse", () => {
 		}
 	});
 	it("marks invalid status/tipe as invalid, never throws", () => {
-		expect(parseIdeaNote("a.md", "a", { [KEY.tipe]: "ide", [KEY.status]: "abc" }).kind).toBe("invalid");
-		expect(parseIdeaNote("a.md", "a", { [KEY.status]: "benih" }).kind).toBe("invalid");
-		expect(parseIdeaNote("a.md", "a", { [KEY.tipe]: 5, [KEY.status]: {} }).kind).toBe("invalid");
+		expect(parseIdeaNote("a.md", "a", { [KEY.type]: "idea", [KEY.status]: "abc" }).kind).toBe("invalid");
+		expect(parseIdeaNote("a.md", "a", { [KEY.type]: "idea" }).kind).toBe("invalid"); // type idea tanpa status
+		// Bukan milik Seedbed: type bukan idea/concept => diabaikan total (bukan "invalid")
+		expect(parseIdeaNote("a.md", "a", { [KEY.status]: "seed" }).kind).toBe("none");
+		expect(parseIdeaNote("a.md", "a", { [KEY.type]: 5, [KEY.status]: {} }).kind).toBe("none");
 	});
 	it("treats a bad tinjau as missing (so it becomes due)", () => {
-		const r = parseIdeaNote("a.md", "a", { [KEY.tipe]: "ide", [KEY.status]: "benih", [KEY.tinjau]: "besok" });
+		const r = parseIdeaNote("a.md", "a", { [KEY.type]: "idea", [KEY.status]: "seed", [KEY.review]: "besok" });
 		expect(r.kind === "idea" && r.idea.tinjau).toBeUndefined();
 	});
 });
 
 describe("frontmatter patch (NF-6)", () => {
-	it("only touches bengkel- keys", () => {
-		const fm: Record<string, unknown> = { title: "Keep", tags: ["x"], aliases: ["y"], [KEY.status]: "benih" };
+	it("only touches Seedbed property names", () => {
+		const fm: Record<string, unknown> = { title: "Keep", tags: ["x"], aliases: ["y"], [KEY.status]: "seed" };
 		applyPatch(fm, { status: "tumbuh", tinjau: "2026-12-01", gerbang: ["socratic"] });
 		expect(fm.title).toBe("Keep");
 		expect(fm.tags).toEqual(["x"]);
 		expect(fm.aliases).toEqual(["y"]);
-		expect(fm[KEY.status]).toBe("tumbuh");
-		expect(fm[KEY.tinjau]).toBe("2026-12-01");
+		expect(fm[KEY.status]).toBe("growing");
+		expect(fm[KEY.review]).toBe("2026-12-01");
 		const changed = Object.keys(fm).filter((k) => !["title", "tags", "aliases"].includes(k));
-		expect(changed.every((k) => k.startsWith("bengkel-"))).toBe(true);
+		expect(changed.every((k) => (Object.values(KEY) as string[]).includes(k))).toBe(true);
 	});
 	it("null removes tinjau; undefined leaves it", () => {
-		const fm: Record<string, unknown> = { [KEY.tinjau]: "2026-12-01" };
+		const fm: Record<string, unknown> = { [KEY.review]: "2026-12-01" };
 		applyPatch(fm, { status: "dibuang" });
-		expect(fm[KEY.tinjau]).toBe("2026-12-01");
+		expect(fm[KEY.review]).toBe("2026-12-01");
 		applyPatch(fm, { tinjau: null });
-		expect(KEY.tinjau in fm).toBe(false);
+		expect(KEY.review in fm).toBe(false);
 	});
 });
 
