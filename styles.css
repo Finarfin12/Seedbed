@@ -193,11 +193,47 @@
 	color: var(--text-warning);
 	font-weight: var(--font-semibold);
 }
-/* Tombol Simpan/status tetap terlihat saat modal Devil menggulir (5 pertanyaan). */
+/* Modal Devil: tinggi dibatasi agar muat di layar laptop; hanya badan pertanyaan yang menggulir,
+   footer (status + Simpan/Batal) tetap terlihat. Hanya variabel bawaan Obsidian. */
+.bengkel-devil-modal {
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+}
+.bengkel-devil-modal .modal-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+.bengkel-devil-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	max-height: calc(90vh - 12rem);
+	overflow-y: auto;
+	padding-right: var(--size-4-2);
+}
 .bengkel-sticky-footer {
-	position: sticky;
-	bottom: calc(var(--size-4-4) * -1);
+	flex: 0 0 auto;
 	background: var(--background-primary);
 	padding-top: var(--size-4-2);
 	border-top: 1px solid var(--background-modifier-border);
+}
+
+/* ---- Tangkapan (Seedbed Capture) ---- */
+/* [!trigger] (0.7+) dan [!pemicu] (catatan 0.6 lama) */
+.callout[data-callout="trigger"],
+.callout[data-callout="pemicu"] {
+	--callout-color: 34, 197, 94;
+	--callout-icon: lucide-sprout;
+}
+.bengkel-capture-quote {
+	margin: var(--size-4-2) 0;
+	padding: var(--size-4-2) var(--size-4-3);
+	border-left: 3px solid var(--interactive-accent);
+	background: var(--background-secondary);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	max-height: 14em;
+	overflow-y: auto;
 }
