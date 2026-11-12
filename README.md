@@ -245,6 +245,10 @@ origin: capture
 
 **Tested:** Windows 11 + Chrome on Wikipedia, MDN, and paulgraham.com; capture-to-note time 0.26–0.34 s. Other browsers and operating systems are untested.
 
+## Agent skill
+
+[`skill/seedbed/`](skill/seedbed/SKILL.md) is a free (MIT) **Agent Skill** that brings Seedbed's thinking gates to AI agents that support `SKILL.md` (tested with Claude Code only). Modes in this first version: **capture** an idea as a seed note, a **Socratic** session where the agent only asks and you answer, and **review** of ideas that are due. It writes the same plain Markdown format as this plugin, so notes from the skill show up in the Incubator. Copy the `skill/seedbed` folder into your agent's skills folder (for Claude Code: `.claude/skills/seedbed/` in a project or `~/.claude/skills/seedbed/`). Devil's Advocate and Feynman modes are not in the skill yet.
+
 ## Language
 
 The UI and question bank are available in English and Bahasa Indonesia (Settings → Language). Command names in the Command Palette change after the plugin reloads.

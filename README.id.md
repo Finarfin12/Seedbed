@@ -244,6 +244,10 @@ origin: capture
 
 **Sudah diuji:** Windows 11 + Chrome di Wikipedia, MDN, dan paulgraham.com; waktu dari Simpan sampai catatan muncul 0,26–0,34 detik. Browser dan OS lain belum diuji.
 
+## Agent skill
+
+[`skill/seedbed/`](skill/seedbed/SKILL.md) adalah **Agent Skill** gratis (MIT) yang membawa gerbang berpikir Seedbed ke agent AI yang mendukung `SKILL.md` (baru diuji di Claude Code). Mode di versi pertama ini: **capture** ide sebagai catatan benih, sesi **Socratic** di mana agent hanya bertanya dan kamu menjawab, dan **review** ide yang jatuh tempo. Formatnya Markdown biasa yang sama dengan plugin ini, jadi catatan dari skill muncul di Inkubator. Salin folder `skill/seedbed` ke folder skill agent-mu (Claude Code: `.claude/skills/seedbed/` di proyek atau `~/.claude/skills/seedbed/`). Mode Devil's Advocate dan Feynman belum ada di skill.
+
 ## Bahasa
 
 UI dan bank pertanyaan tersedia dalam Bahasa Indonesia dan English (Pengaturan → Bahasa). Nama perintah di Command Palette baru berganti setelah plugin dimuat ulang.
