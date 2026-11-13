@@ -133,7 +133,7 @@ export class Controller {
 		const names = this.settings.properties;
 		const files = this.app.vault
 			.getMarkdownFiles()
-			.filter((f) => hasLegacyProps(this.app.metadataCache.getFileCache(f)?.frontmatter as Record<string, unknown> | undefined, names));
+			.filter((f) => hasLegacyProps(this.app.metadataCache.getFileCache(f)?.frontmatter, names));
 		if (files.length === 0) {
 			new Notice(t("migrate.none"));
 			return;
@@ -216,7 +216,7 @@ export class Controller {
 		const today = this.today();
 		// Catatan yang sudah punya type/status dari template lain tidak ditimpa (nama properti umum mudah bentrok).
 		const plan = planAdopt(
-			this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined,
+			this.app.metadataCache.getFileCache(file)?.frontmatter,
 			{ tipe, status: "benih", dibuat: today, tinjau: nextReview("benih", today, this.settings), gerbang: [] },
 			this.settings.properties,
 		);
@@ -453,12 +453,12 @@ export class Controller {
 		}
 		const { file } = cur;
 		const lang = this.settings.language;
-		let items: Array<{ category: (typeof PREMORTEM_CATEGORIES)[number]; text: string; source: SourceLabel }> = premortemQuestions(lang).map((q) => ({ ...q, source: { kind: "bank" } as SourceLabel }));
+		let items: Array<{ category: (typeof PREMORTEM_CATEGORIES)[number]; text: string; source: SourceLabel }> = premortemQuestions(lang).map((q) => ({ ...q, source: { kind: "bank" } }));
 		const svc = this.host.getQuestionService();
 		if (svc.aiAvailable) {
 			new Notice(this.t("notice.aiPreparing"));
 			const ai = await svc.premortemBatch({ language: lang, noteText: await this.app.vault.read(file) });
-			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, text: ai.texts[i] as string, source: ai.source } : it));
+			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, text: ai.texts[i], source: ai.source } : it));
 			else this.noticeAiFailed(svc);
 		}
 		const cfg = this.settings.premortem;
@@ -624,7 +624,7 @@ export class Controller {
 				{ language: lang, noteText: target.text },
 				ranked.map((r) => ({ title: r.note.title, text: r.note.text })),
 			);
-			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, question: ai.texts[i] as string, source: ai.source } : it));
+			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, question: ai.texts[i], source: ai.source } : it));
 			else this.noticeAiFailed(svc);
 		}
 		new ConnectModal(this.app, this.t, lang, items, {

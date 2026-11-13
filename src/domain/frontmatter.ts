@@ -60,7 +60,7 @@ export function sanitizeNames(raw: unknown): PropNames {
 	const r = raw as Record<string, unknown>;
 	const out = { ...DEFAULT_NAMES };
 	for (const f of FIELDS) {
-		const v = typeof r[f] === "string" ? (r[f] as string).trim() : "";
+		const v = typeof r[f] === "string" ? (r[f]).trim() : "";
 		if (PROP_NAME_RE.test(v)) out[f] = v;
 	}
 	const seen = new Set<string>();

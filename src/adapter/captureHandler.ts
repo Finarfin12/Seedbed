@@ -33,7 +33,7 @@ export class CaptureHandler {
 	constructor(private host: () => CaptureHost) {}
 
 	handle = (params: Record<string, string>): void => {
-		void this.run(params as CaptureParams);
+		void this.run(params);
 	};
 
 	private async run(params: CaptureParams): Promise<void> {

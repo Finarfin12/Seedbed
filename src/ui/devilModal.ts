@@ -84,7 +84,7 @@ export class DevilModal extends Modal {
 						if (res) {
 							this.hints[i] = (this.hints[i] as number) + 1;
 							const box = hintHost.createDiv({ cls: "bengkel-hint" });
-							box.createEl("strong", { text: this.t("modal.hintTitle", { n: this.hints[i] as number }) });
+							box.createEl("strong", { text: this.t("modal.hintTitle", { n: this.hints[i] }) });
 							box.createSpan({ text: ` · ${formatSource(res.source, this.lang)}`, cls: "bengkel-source" });
 							box.createEl("p", { text: res.text });
 						} else {

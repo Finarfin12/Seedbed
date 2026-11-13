@@ -90,7 +90,7 @@ export class IdeaIndex {
 	}
 
 	private parse(file: TFile): ParsedNote {
-		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as FM | undefined;
+		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
 		if (this.ignored(file.path)) return { kind: "none" };
 		return this.touched(parseIdeaNote(file.path, file.basename, fm, this.names()), toISODate(new Date(file.stat.mtime)));
 	}
