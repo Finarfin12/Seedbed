@@ -268,7 +268,7 @@ export function applyPatch(fm: FM, patch: IdeaPatch, names: PropNames = DEFAULT_
 	if (patch.gerbang !== undefined || patch.addGates !== undefined) {
 		// G-1: nilai `gates` yang tidak dikenal (mis. "premortem" dari skill) dipertahankan, tidak dihapus.
 		const prev = fm[names.gates];
-		const list = Array.isArray(prev) ? prev : typeof prev === "string" ? [prev] : [];
+		const list: unknown[] = Array.isArray(prev) ? prev as unknown[] : typeof prev === "string" ? [prev] : [];
 		const known = patch.gerbang !== undefined ? [...patch.gerbang] : list.filter((g): g is GateId => (GATE_IDS as readonly unknown[]).includes(g));
 		const extra = list.filter((g) => typeof g === "string" && !(GATE_IDS as readonly unknown[]).includes(g));
 		for (const g of patch.addGates ?? []) if (!extra.includes(g)) extra.push(g);

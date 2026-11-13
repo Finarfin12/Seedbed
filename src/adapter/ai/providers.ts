@@ -58,8 +58,11 @@ function parseChatContent(text: string, kind: "ollama" | "openai"): string {
 	} catch {
 		throw new Error("response is not JSON");
 	}
-	const o = obj as Record<string, any>;
-	const content = kind === "ollama" ? o?.message?.content : o?.choices?.[0]?.message?.content;
+	const o = obj && typeof obj === "object" ? obj as Record<string, unknown> : {};
+	const choices = Array.isArray(o.choices) ? o.choices as unknown[] : [];
+	const choice = choices[0] && typeof choices[0] === "object" ? choices[0] as Record<string, unknown> : {};
+	const message = kind === "ollama" ? o.message : choice.message;
+	const content = message && typeof message === "object" ? (message as Record<string, unknown>).content : undefined;
 	if (typeof content !== "string") throw new Error("no message content in response");
 	return content;
 }
@@ -82,18 +85,21 @@ export class LocalHttpProvider implements AiProvider {
 		const kind = this.cfg.kind;
 		const url = joinUrl(base, kind === "ollama" ? "/api/tags" : "/v1/models");
 		let timer: number | undefined;
-		const timeout = new Promise<never>((_, reject) => {
-			timer = window.setTimeout(() => reject(new Error(`${kind} not reachable (no answer in ${this.probeMs}ms)`)), this.probeMs);
+		const timeout = new Promise<null>((resolve) => {
+			timer = window.setTimeout(() => resolve(null), this.probeMs);
 		});
+		let response: Awaited<ReturnType<HttpClient["get"]>> | null;
 		try {
-			const r = await Promise.race([this.http.get(url), timeout]);
-			if (r.status < 200 || r.status >= 300) throw new Error(`${kind} HTTP ${r.status}`);
-		} catch (e) {
-			const msg = e instanceof Error ? e.message : String(e);
-			throw new Error(msg.startsWith(kind) ? msg : `${kind} not reachable`);
+			response = await Promise.race([this.http.get(url), timeout]);
+		} catch {
+			// Original transport errors may contain credentials; intentionally emit a sanitized error without the original cause.
+			// eslint-disable-next-line preserve-caught-error -- Original transport errors may contain credentials; intentionally emit a sanitized error without the original cause.
+			throw new Error(`${kind} not reachable`);
 		} finally {
-			if (timer) window.clearTimeout(timer);
+			if (timer !== undefined) window.clearTimeout(timer);
 		}
+		if (response === null) throw new Error(`${kind} not reachable (no answer in ${this.probeMs}ms)`);
+		if (response.status < 200 || response.status >= 300) throw new Error(`${kind} HTTP ${response.status}`);
 	}
 
 	async complete(prompt: Prompt): Promise<string> {
@@ -164,7 +170,8 @@ export class ApiProvider implements AiProvider {
 			return parseChatContent(r.text, "openai");
 		} catch (e) {
 			// Key tidak boleh muncul di pesan error/log.
-			throw new Error(redact(e instanceof Error ? e.message : String(e), [this.cfg.apiKey]));
+			// eslint-disable-next-line preserve-caught-error -- Original transport errors may contain credentials; intentionally emit a sanitized error without the original cause.
+			throw new Error(redact(e instanceof Error ? e.message : typeof e === "string" ? e : "api request failed", [this.cfg.apiKey]));
 		}
 	}
 }

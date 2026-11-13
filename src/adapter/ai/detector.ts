@@ -37,7 +37,7 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 			},
 			(e) => {
 				window.clearTimeout(t);
-				reject(e);
+				reject(e instanceof Error ? e : new Error(String(e)));
 			},
 		);
 	});
@@ -92,9 +92,12 @@ export async function detectProviders(deps: CliDeps, http: HttpClient | null, op
 				local.push({ kind, status: "error", models: [], detail: `HTTP ${r.status}` });
 				continue;
 			}
-			const obj = JSON.parse(r.text) as any;
-			const list: unknown[] = kind === "ollama" ? obj?.models ?? [] : obj?.data ?? [];
-			const models = list.map((m: any) => (kind === "ollama" ? m?.name : m?.id)).filter((x: unknown): x is string => typeof x === "string");
+			const obj: unknown = JSON.parse(r.text);
+			const record = obj && typeof obj === "object" ? obj as Record<string, unknown> : {};
+			const value = kind === "ollama" ? record.models : record.data;
+			if (value != null && !Array.isArray(value)) throw new Error("invalid model list");
+			const list: unknown[] = Array.isArray(value) ? value : [];
+			const models = list.map((m) => m && typeof m === "object" ? (m as Record<string, unknown>)[kind === "ollama" ? "name" : "id"] : undefined).filter((x): x is string => typeof x === "string");
 			local.push({ kind, status: "available", models, detail: `${models.length} model` });
 		} catch (e) {
 			local.push({ kind, status: "missing", models: [], detail: e instanceof Error ? e.message.slice(0, 120) : "tidak merespons" });
