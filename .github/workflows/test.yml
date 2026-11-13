@@ -19,6 +19,8 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      # Versi di manifest.json, package.json, package-lock.json, versions.json dan CHANGELOG harus sama.
+      - run: node scripts/check-release.mjs
       - run: npm test
       - run: npm run build
 

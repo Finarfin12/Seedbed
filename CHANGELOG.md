@@ -2,6 +2,8 @@
 
 ## 0.8.1
 - Fixes for the Obsidian community plugin review: views are no longer detached in `onunload` (they keep the place you moved them to), `minAppVersion` raised to 1.8.7 because the plugin uses `getLanguage()`, and the `eslint-disable` comments now say why they are needed.
+- `versions.json` corrected: 0.5.0, 0.7.0 and 0.8.0 also need Obsidian 1.8.7 (they call `getLanguage()`); entries for versions that were never released (0.4.0, 0.6.0) removed.
+- Release check (`scripts/check-release.mjs`, run in CI and before every release): the tag, `manifest.json`, `package.json`, `package-lock.json`, `versions.json` and `CHANGELOG.md` must agree on the version, or the build fails. Release notes now contain only this version's CHANGELOG section.
 
 ## 0.8.0
 - **Format v2** (shared with the agent skill, see README "Format v2"): `gates` keeps unknown values such as `premortem` when the plugin rewrites it (0.7.0 dropped them); new callouts `[!premortem]`, `[!retrieval]`, `[!connect]`; a line of callout content that starts with `[!` is now written as `\[!` (the format already required it, the plugin did not do it).
