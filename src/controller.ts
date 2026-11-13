@@ -8,7 +8,7 @@ import type { IdeaRepository } from "./adapter/repository";
 import type { TermSource } from "./adapter/termSource";
 import { formatCallout } from "./domain/callout";
 import type { CalloutEntry } from "./domain/callout";
-import { toISODate } from "./domain/dates";
+import { daysBetween, toISODate } from "./domain/dates";
 import { analyze } from "./domain/feynman/analyzer";
 import type { Gap } from "./domain/feynman/analyzer";
 import { hasLegacyProps, planAdopt } from "./domain/frontmatter";
@@ -28,6 +28,7 @@ import type { TFn } from "./i18n";
 import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
 import { PremortemModal } from "./ui/premortemModal";
+import { buildDigest, gatesFromText } from "./domain/v08";
 import { RecallSession, parseQaPairs, pickRecall, premortemPassed, premortemQuestions, retrievalReview } from "./domain/v08";
 import type { SelfRating } from "./domain/v08";
 import { RetrievalModal } from "./ui/retrievalModal";
@@ -545,6 +546,27 @@ export class Controller {
 				});
 			},
 		}).open();
+	}
+
+	// ---------- Digest (0.8.0) ----------
+
+	/** Digest mingguan: tulis `Seedbed digest YYYY-MM-DD.md` (tidak menimpa). Hanya catatan Seedbed yang dibaca. */
+	async createDigest(): Promise<void> {
+		const today = this.today();
+		const ideas = this.host.index.all();
+		const gatesThisWeek: Array<{ title: string; gate: string }> = [];
+		for (const idea of ideas) {
+			// Hanya catatan yang diedit dalam 7 hari terakhir yang mungkin punya callout baru.
+			if (idea.status === "dibuang" || !idea.tersentuh || daysBetween(idea.tersentuh, today) > 7) continue;
+			const file = this.host.repo.getFile(idea.path);
+			if (!file) continue;
+			const text = await this.app.vault.cachedRead(file);
+			for (const gate of gatesFromText(text, today)) gatesThisWeek.push({ title: idea.title, gate });
+		}
+		const body = buildDigest({ ideas, today, stuckDays: this.settings.digest.stuckDays, gatesThisWeek, lang: this.settings.language });
+		const file = await this.host.factory.createDigest(this.settings.digest.folder, `Seedbed digest ${today}`, body);
+		new Notice(this.t("notice.digestCreated", { path: file.path }));
+		await this.app.workspace.getLeaf(false).openFile(file);
 	}
 
 	// ---------- Feynman ----------

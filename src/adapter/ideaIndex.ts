@@ -1,6 +1,8 @@
 import type { App, TFile } from "obsidian";
 import { parseIdeaNote } from "../domain/frontmatter";
 import type { PropNames } from "../domain/frontmatter";
+import { toISODate } from "../domain/dates";
+import { isStuck } from "../domain/v08";
 import { isDue } from "../domain/scheduler";
 import type { Idea, InvalidIdea, ParsedNote } from "../domain/types";
 
@@ -38,7 +40,20 @@ export class IdeaIndex {
 
 	/** Pakai frontmatter yang baru saja kita tulis (cache Obsidian mungkin belum diperbarui). */
 	setFromFrontmatter(file: TFile, fm: FM): void {
-		this.set(file.path, this.ignored(file.path) ? { kind: "none" } : parseIdeaNote(file.path, file.basename, fm, this.names()));
+		// Penulisan oleh plugin sendiri mengubah mtime, jadi "tersentuh" = hari ini (keputusan Q1).
+		this.set(file.path, this.ignored(file.path) ? { kind: "none" } : this.touched(parseIdeaNote(file.path, file.basename, fm, this.names()), toISODate(new Date())));
+	}
+
+	/** Isi Idea.tersentuh (tanggal lokal). Hanya untuk catatan Seedbed yang valid. */
+	private touched(p: ParsedNote, day: string): ParsedNote {
+		return p.kind === "idea" ? { kind: "idea", idea: { ...p.idea, tersentuh: day } } : p;
+	}
+
+	/** Ide yang tidak diedit lebih dari `days` hari (waktu ubah berkas), paling lama dulu. */
+	stuck(today: string, days: number): Idea[] {
+		return this.all()
+			.filter((i) => isStuck(i, today, days))
+			.sort((a, b) => (a.tersentuh ?? "").localeCompare(b.tersentuh ?? "") || a.title.localeCompare(b.title));
 	}
 
 	remove(path: string): void {
@@ -77,7 +92,7 @@ export class IdeaIndex {
 	private parse(file: TFile): ParsedNote {
 		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as FM | undefined;
 		if (this.ignored(file.path)) return { kind: "none" };
-		return parseIdeaNote(file.path, file.basename, fm, this.names());
+		return this.touched(parseIdeaNote(file.path, file.basename, fm, this.names()), toISODate(new Date(file.stat.mtime)));
 	}
 
 	private apply(path: string, parsed: ParsedNote): void {

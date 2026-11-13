@@ -57,3 +57,10 @@ export function killProfile() {
     return out;
   } catch (e) { return String(e); }
 }
+
+// Mulai ulang instance QA TANPA menghapus profil/vault (uji "restart Obsidian").
+export function relaunch() {
+  const child = spawn(EXE, [`--user-data-dir=${profile}`, `--remote-debugging-port=${PORT}`], { detached: true, stdio: "ignore" });
+  child.unref();
+  return child.pid;
+}

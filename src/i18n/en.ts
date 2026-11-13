@@ -330,4 +330,15 @@ export const en: Record<Key, string> = {
 	"set.retrieval.enabled.desc": "Recall button on due notes that have earlier answers.",
 	"set.retrieval.adjust": "Adjust the review date from your self-rating",
 	"set.retrieval.adjust.desc": "Forgot = interval ÷ 2, Remembered = × 1.5, Partly = unchanged. Only the review date changes.",
+
+	// 0.8.0
+	"cmd.digest": "Create weekly digest",
+	"view.stuck": "Stuck",
+	"view.stuckDays": "not edited for {n} days",
+	"notice.digestCreated": "Digest created: {path}",
+	"set.digest": "Weekly digest and Stuck",
+	"set.digest.folder": "Digest folder",
+	"set.digest.folder.desc": "The \"Create weekly digest\" command writes a new note here. It never overwrites.",
+	"set.digest.stuckDays": "Stuck after (days)",
+	"set.digest.stuckDays.desc": "Based on the file's modified time: any edit, including sync, takes a note out of Stuck.",
 };

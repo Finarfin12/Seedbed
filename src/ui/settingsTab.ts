@@ -174,6 +174,20 @@ export class BengkelSettingTab extends PluginSettingTab {
 				}),
 			);
 
+		new Setting(containerEl).setName(t("set.digest")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.digest.folder"))
+			.setDesc(t("set.digest.folder.desc"))
+			.addText((c) => {
+				c.setValue(s.digest.folder);
+				c.inputEl.addEventListener("change", () => {
+					s.digest.folder = cleanFolder(c.inputEl.value) || "Digests";
+					c.setValue(s.digest.folder);
+					void save();
+				});
+			});
+		number(containerEl, t("set.digest.stuckDays"), t("set.digest.stuckDays.desc"), () => s.digest.stuckDays, (v) => (s.digest.stuckDays = v), 1, 3650);
+
 		new Setting(containerEl).setName(t("set.feynman")).setHeading();
 		new Setting(containerEl)
 			.setName(t("set.feynman.jargon"))

@@ -32,6 +32,13 @@ export class NoteFactory {
 		return this.app.vault.create(this.uniquePath(folder, base), body);
 	}
 
+	/** Catatan digest: nama unik (tidak menimpa), isi tanpa properti Seedbed. */
+	async createDigest(folder: string, base: string, body: string): Promise<TFile> {
+		const f = folder.trim();
+		await this.ensureFolder(f);
+		return this.app.vault.create(this.uniquePath(f, base), body);
+	}
+
 	private async ensureFolder(folder: string): Promise<void> {
 		if (!folder) return;
 		const path = normalizePath(folder);

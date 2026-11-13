@@ -329,6 +329,17 @@ export const id = {
 	"set.retrieval.enabled.desc": "Tombol Recall pada catatan jatuh tempo yang punya jawaban lama.",
 	"set.retrieval.adjust": "Sesuaikan jadwal tinjau dengan penilaian dirimu",
 	"set.retrieval.adjust.desc": "Lupa = interval ÷ 2, Ingat = × 1,5, Sebagian = tetap. Hanya tanggal tinjau yang berubah.",
+
+	// 0.8.0
+	"cmd.digest": "Buat digest mingguan",
+	"view.stuck": "Macet",
+	"view.stuckDays": "tidak diedit {n} hari",
+	"notice.digestCreated": "Digest dibuat: {path}",
+	"set.digest": "Digest mingguan dan Macet",
+	"set.digest.folder": "Folder digest",
+	"set.digest.folder.desc": "Perintah \"Buat digest mingguan\" menulis catatan baru di sini. Tidak pernah menimpa.",
+	"set.digest.stuckDays": "Macet setelah (hari)",
+	"set.digest.stuckDays.desc": "Berdasarkan waktu ubah berkas: edit apa pun, termasuk sinkronisasi, mengeluarkan catatan dari Macet.",
 } as const;
 
 export type Key = keyof typeof id;
