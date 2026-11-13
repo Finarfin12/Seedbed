@@ -4,7 +4,12 @@
 
 Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik status setelah lolos "gerbang" berpikir: **Socratic**, **Devil's Advocate**, dan **Feynman**. AI opsional hanya boleh bertanya, tidak pernah menjawab.
 
-> **Status: v0.8.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Baru di 0.8.0: Pre-mortem, Recall, bagian Macet dan digest mingguan, Connect, serta pemeriksaan Feynman yang lebih ketat. Lihat [Tangkapan layar](#tangkapan-layar).
+> **Status: v0.8.4 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Pembaruan sejak 0.8.0:
+> - **0.8.1:** Perbaikan kepatuhan scanner dan penyesuaian `minAppVersion` ke `1.8.7`.
+> - **0.8.2:** Callout `[!evidence]` dilewati pada analisis Feynman.
+> - **0.8.3:** Ekstensi browser dipisah ke repositori tersendiri di [seedbed-capture](https://github.com/Finarfin12/seedbed-capture); perbaikan warning scanner.
+> - **0.8.4:** Pengaturan muncul di Settings Search native Obsidian 1.13+ lewat API deklaratif `getSettingDefinitions()`; perbaikan freeze pada tab pengaturan.
+> Tersedia juga sebagai skill agent AI di [seedbed-skill](https://github.com/Finarfin12/seedbed-skill). Lihat [Tangkapan layar](#tangkapan-layar).
 
 ![Panel Inkubator berisi ide jatuh tempo, tombol Recall dan Naikkan, serta bagian Macet](docs/screenshots/incubator.png)
 
@@ -19,6 +24,7 @@ Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik sta
 - [Bank pertanyaan kustom](#bank-pertanyaan-kustom)
 - [AI opsional](#ai-opsional)
 - [Seedbed Capture (ekstensi browser)](#seedbed-capture-ekstensi-browser), kode di [seedbed-capture](https://github.com/Finarfin12/seedbed-capture)
+- [Agent skill](#agent-skill), kode di [seedbed-skill](https://github.com/Finarfin12/seedbed-skill)
 - [Bahasa](#bahasa)
 - [Instalasi](#instalasi)
 - [Pengembangan](#pengembangan)

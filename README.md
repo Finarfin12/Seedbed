@@ -4,7 +4,12 @@
 
 An Obsidian plugin for incubating ideas and testing your understanding. An idea only moves up a stage after it passes a thinking "gate": **Socratic**, **Devil's Advocate**, or **Feynman**. The optional AI is only allowed to ask questions, never to answer them.
 
-> **Status: v0.8.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New in 0.8.0: Pre-mortem, Recall, Stuck section and weekly digest, Connect, and a stricter Feynman check. See [Screenshots](#screenshots).
+> **Status: v0.8.4 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.8.0:
+> - **0.8.1:** Scanner compliance fixes and raised `minAppVersion` to `1.8.7`.
+> - **0.8.2:** Feynman analysis skips `[!evidence]` callouts.
+> - **0.8.3:** Browser extension split into standalone [seedbed-capture](https://github.com/Finarfin12/seedbed-capture) repository; scanner warning cleanups.
+> - **0.8.4:** Settings integrated into native Obsidian 1.13+ Settings Search via declarative `getSettingDefinitions()`; fixed settings tab renderer freeze.
+> Also available as an AI agent skill at [seedbed-skill](https://github.com/Finarfin12/seedbed-skill). See [Screenshots](#screenshots).
 
 ![Incubator panel with due ideas, Recall and Promote buttons, and the Stuck section](docs/screenshots/incubator.png)
 
@@ -19,6 +24,7 @@ An Obsidian plugin for incubating ideas and testing your understanding. An idea 
 - [Custom question bank](#custom-question-bank)
 - [Optional AI](#optional-ai)
 - [Seedbed Capture (browser extension)](#seedbed-capture-browser-extension), source at [seedbed-capture](https://github.com/Finarfin12/seedbed-capture)
+- [Agent skill](#agent-skill), source at [seedbed-skill](https://github.com/Finarfin12/seedbed-skill)
 - [Language](#language)
 - [Installation](#installation)
 - [Development](#development)
