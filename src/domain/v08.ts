@@ -192,11 +192,13 @@ export class RecallSession {
 
 export type SelfRating = "remembered" | "partly" | "forgot";
 
-/** Interval tinjau berikutnya menurut penilaian sendiri: Lupa = interval ÷ 2, Ingat = × 1,5, Sebagian = tetap (min. 1 hari). */
+/** Interval tinjau berikutnya menurut penilaian sendiri: Lupa = interval ÷ 2, Ingat = × 1,5, Sebagian/tanpa = interval normal (min. 1 hari). Penyesuaian mati => null (review tidak ditulis). */
 export function retrievalReview(status: Status, rating: SelfRating | undefined, today: string, s: Settings): string | null {
+	// Keputusan user: bila penyesuaian dimatikan, Recall tidak mengubah `review` sama sekali (null = jangan tulis).
+	if (!s.retrieval.adjustInterval) return null;
 	const base = nextReview(status, today, s);
 	if (base === null) return null;
-	if (!rating || rating === "partly" || !s.retrieval.adjustInterval) return base;
+	if (!rating || rating === "partly") return base;
 	const days = s.intervals[status === "dibuang" ? "benih" : status];
 	const adj = rating === "forgot" ? Math.max(1, Math.round(days / 2)) : Math.max(1, Math.round(days * 1.5));
 	return addDays(today, adj);

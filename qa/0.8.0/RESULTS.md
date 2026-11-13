@@ -1,6 +1,6 @@
 # QA 0.8.0 results (GUI, Obsidian 1.15.0, separate instance, copy vault)
 
-Screenshots: 54 files in [screenshots/](screenshots/), named "<test id> - <what it shows>.png". Real Claude calls: see [_calls.log](_calls.log) (7 of 10).
+Screenshots: 56 files in [screenshots/](screenshots/), named "<test id> - <what it shows>.png". Real Claude calls: see [_calls.log](_calls.log) (7 of 10).
 
 | Test | Result | Evidence |
 |---|---|---|
@@ -44,6 +44,7 @@ Screenshots: 54 files in [screenshots/](screenshots/), named "<test id> - <what 
 | T-RT3 | PASS | [T-RT3.md](T-RT3.md) |
 | T-RT4 | PASS | [T-RT4.md](T-RT4.md) |
 | T-RT5 | PASS | [T-RT5.md](T-RT5.md) |
+| T-RT5b | PASS | [T-RT5b.md](T-RT5b.md) |
 | T-RT6 | PASS | [T-RT6.md](T-RT6.md) |
 | T-RT7 | PASS | [T-RT7.md](T-RT7.md) |
 

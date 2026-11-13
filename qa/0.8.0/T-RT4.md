@@ -85,8 +85,8 @@ Idea body RT.
 > Earlier answer: I assume people already read at least once a week.
 >
 > **Recall** · Bank · forgot
-> What follows if this is true?
+> Is this the right question?
 > Answer: not sure at all about this one
-> Earlier answer: Then streaks matter more than the number of pages.
+> Earlier answer: Maybe the real question is why people stop reading.
 
 ```

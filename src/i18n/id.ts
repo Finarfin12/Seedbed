@@ -328,7 +328,7 @@ export const id = {
 	"set.retrieval.enabled": "Aktifkan Recall",
 	"set.retrieval.enabled.desc": "Tombol Recall pada catatan jatuh tempo yang punya jawaban lama.",
 	"set.retrieval.adjust": "Sesuaikan jadwal tinjau dengan penilaian dirimu",
-	"set.retrieval.adjust.desc": "Lupa = interval ÷ 2, Ingat = × 1,5, Sebagian = tetap. Hanya tanggal tinjau yang berubah.",
+	"set.retrieval.adjust.desc": "Lupa = interval ÷ 2, Ingat = × 1,5, Sebagian = interval normal. Bila dimatikan, Recall tidak pernah mengubah tanggal tinjau.",
 
 	// 0.8.0
 	"cmd.digest": "Buat digest mingguan",

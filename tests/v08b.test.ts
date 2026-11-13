@@ -79,9 +79,11 @@ describe("8b review interval from self-rating (Q2)", () => {
 		expect(retrievalReview("tumbuh", "partly", "2026-11-13", s)).toBe("2026-11-27");
 		expect(retrievalReview("tumbuh", undefined, "2026-11-13", s)).toBe("2026-11-27");
 	});
-	it("adjustment can be turned off; discarded has no review", () => {
+	it("adjustment off => null for every rating (review is never written); discarded has no review", () => {
 		const off = mergeSettings({ retrieval: { adjustInterval: false } });
-		expect(retrievalReview("tumbuh", "forgot", "2026-11-13", off)).toBe("2026-11-27");
+		for (const r of ["forgot", "remembered", "partly", undefined] as const) expect(retrievalReview("tumbuh", r, "2026-11-13", off)).toBeNull();
+		expect(retrievalReview("matang", "forgot", "2026-11-13", DEFAULT_SETTINGS)).toBe("2026-11-28");
+		expect(retrievalReview("matang", "remembered", "2026-11-13", DEFAULT_SETTINGS)).toBe("2026-12-28");
 		expect(retrievalReview("dibuang", "forgot", "2026-11-13", s)).toBeNull();
 	});
 	it("minimum 1 day", () => {

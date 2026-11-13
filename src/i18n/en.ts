@@ -329,7 +329,7 @@ export const en: Record<Key, string> = {
 	"set.retrieval.enabled": "Enable Recall",
 	"set.retrieval.enabled.desc": "Recall button on due notes that have earlier answers.",
 	"set.retrieval.adjust": "Adjust the review date from your self-rating",
-	"set.retrieval.adjust.desc": "Forgot = interval ÷ 2, Remembered = × 1.5, Partly = unchanged. Only the review date changes.",
+	"set.retrieval.adjust.desc": "Forgot = interval ÷ 2, Remembered = × 1.5, Partly = normal interval. When off, Recall never changes the review date.",
 
 	// 0.8.0
 	"cmd.digest": "Create weekly digest",
