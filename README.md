@@ -4,13 +4,16 @@
 
 An Obsidian plugin for incubating ideas and testing your understanding. An idea only moves up a stage after it passes a thinking "gate": **Socratic**, **Devil's Advocate**, or **Feynman**. The optional AI is only allowed to ask questions, never to answer them.
 
-> **Status: v0.7.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.6.0: plain property names, templates, and captures from the [Seedbed Capture](#seedbed-capture-browser-extension) Chrome extension.
+> **Status: v0.8.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New in 0.8.0: Pre-mortem, Recall, Stuck section and weekly digest, Connect, and a stricter Feynman check. See [Screenshots](#screenshots).
+
+![Incubator panel with due ideas, Recall and Promote buttons, and the Stuck section](docs/screenshots/incubator.png)
 
 **Privacy and network.** With AI **off (the default)**, the plugin makes no network requests and runs no external programs. All data is plain Markdown frontmatter and callouts in your vault, so it stays readable without the plugin. AI only runs after you turn it on and approve each provider (see [Optional AI](#optional-ai)).
 
 ## Contents
 - [Concept](#concept)
 - [Commands](#commands)
+- [Screenshots](#screenshots)
 - [Data format](#data-format)
 - [Feynman mode](#feynman-mode)
 - [Custom question bank](#custom-question-bank)
@@ -58,6 +61,16 @@ Seed --(Socratic / Feynman)--> Growing --(Devil's Advocate)--> Mature
 
 The Incubator panel has **Promote / Snooze / Discard / Open** buttons, plus **Reopen / Restore**, **Recall** (due notes that have earlier answers) and **Pre-mortem** (mature notes). The **Stuck** section lists notes whose file has not been edited for more than 30 days (a setting); any edit, including sync, takes a note out of it. On desktop a "💡 N due" badge appears in the status bar; on mobile the badge is in the panel.
 
+## Screenshots
+
+Taken during the manual tests of 0.8.0 (Obsidian 1.15.0, Windows 11, test vault).
+
+| | |
+|---|---|
+| ![Socratic gate: one question at a time, at least 20 characters per answer](docs/screenshots/socratic.png) **Socratic gate.** One question at a time; the answer needs at least 20 characters. | ![Devil's Advocate gate with five challenging questions](docs/screenshots/devil.png) **Devil's Advocate gate.** Five challenging questions; at least 4 must be answered. |
+| ![Feynman gaps panel labelling a circular and an empty definition](docs/screenshots/feynman-gaps.png) **Feynman gaps.** Unexplained terms, now also circular ("Entropy is entropy") and empty definitions. | ![Pre-mortem modal with questions per category](docs/screenshots/premortem.png) **Pre-mortem.** "It failed a year from now, why?" for mature ideas. The status does not change. |
+| ![Recall modal showing the new answer and the earlier answer side by side](docs/screenshots/recall.png) **Recall.** The earlier answer stays hidden until you submit, then both are shown side by side. No score. | ![Weekly digest note with due, stuck and per-status sections](docs/screenshots/digest.png) **Weekly digest.** Due, stuck, counts, this week, and one idea to test. |
+| ![Connect modal asking how this idea relates to another Seedbed idea](docs/screenshots/connect.png) **Connect.** Only other Seedbed ideas are candidates; a link is added only when you press its button. | |
 ## Data format
 
 Frontmatter is the source of truth for status. Property **names are plain, unprefixed, and English**, and so are the values, for every UI language, so queries and templates stay simple:
