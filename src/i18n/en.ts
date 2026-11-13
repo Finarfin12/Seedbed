@@ -341,4 +341,22 @@ export const en: Record<Key, string> = {
 	"set.digest.folder.desc": "The \"Create weekly digest\" command writes a new note here. It never overwrites.",
 	"set.digest.stuckDays": "Stuck after (days)",
 	"set.digest.stuckDays.desc": "Based on the file's modified time: any edit, including sync, takes a note out of Stuck.",
+
+	// 0.8.0
+	"cmd.connect": "Connect this idea",
+	"connect.title": "Connect this idea with your others",
+	"connect.intro": "Answer in your own words. A link is added only when you press its button.",
+	"connect.addLink": "Add link to \"{title}\"",
+	"connect.linked": "Link added",
+	"connect.alreadyLinked": "Link already there",
+	"connect.answered": "Answered: {c} of {n}",
+	"callout.connect": "Connect",
+	"notice.connectNone": "No similar ideas found. Nothing was written.",
+	"notice.connectDisabled": "Connect is turned off in settings.",
+	"notice.connectSaved": "Connect answers saved.",
+	"set.connect": "Connect",
+	"set.connect.enabled": "Enable Connect",
+	"set.connect.enabled.desc": "Reads only other Seedbed notes (type idea/concept). Other notes are never read.",
+	"gaps.weakCircular": "circular",
+	"gaps.weakEmpty": "empty",
 };

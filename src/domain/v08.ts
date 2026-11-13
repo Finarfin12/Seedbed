@@ -327,13 +327,22 @@ export interface ConnectNote {
 	text: string;
 }
 
+/** Isi catatan tanpa frontmatter dan tanpa penanda callout, supaya kata seperti "type"/"status"/"socratic" tidak dianggap kesamaan. */
+export function bodyOf(text: string): string {
+	return text
+		.replace(/^---\r?\n[\s\S]*?\r?\n---[ \t]*(\r?\n|$)/, "")
+		.replace(/^>\s*\[![\w-]+\][+-]?.*$/gm, "")
+		.replace(/^>\s*\*\*[^*]+\*\*.*$/gm, "")
+		.replace(/^>\s*(Answer|Jawaban|Earlier answer|Jawaban lama):\s?/gm, "> ");
+}
+
 /** Kandidat = catatan Seedbed lain (pemanggil hanya memberi catatan Seedbed), maks. `max`, berdasarkan kata bersama pada judul + awal isi. Tanpa AI. */
 export function rankCandidates(target: ConnectNote, others: ConnectNote[], max = 10): Array<{ note: ConnectNote; score: number }> {
-	const tk = tokens(`${target.title} ${target.title} ${target.text.slice(0, 1500)}`);
+	const tk = tokens(`${target.title} ${target.title} ${bodyOf(target.text).slice(0, 1500)}`);
 	const scored = others
 		.filter((o) => o.path !== target.path)
 		.map((o) => {
-			const ok = tokens(`${o.title} ${o.title} ${o.text.slice(0, 600)}`);
+			const ok = tokens(`${o.title} ${o.title} ${bodyOf(o.text).slice(0, 600)}`);
 			let score = 0;
 			for (const w of ok) if (tk.has(w)) score++;
 			return { note: o, score };

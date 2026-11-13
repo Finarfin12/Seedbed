@@ -155,6 +155,15 @@ export default class SeedbedPlugin extends Plugin {
 				return true;
 			},
 		});
+		this.addCommand({
+			id: "connect",
+			name: t("cmd.connect"),
+			checkCallback: (checking) => {
+				if (!this.settings.connect.enabled) return false;
+				if (!checking) run(() => c.connectActive())();
+				return true;
+			},
+		});
 		this.addCommand({ id: "create-digest", name: t("cmd.digest"), callback: run(() => c.createDigest()) });
 		this.addCommand({ id: "start-feynman", name: t("cmd.startFeynman"), callback: run(() => c.startFeynman()) });
 		this.addCommand({ id: "check-feynman", name: t("cmd.checkFeynman"), callback: run(() => c.checkFeynmanActive()) });

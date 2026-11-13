@@ -156,7 +156,7 @@ export function mergeSettings(loaded: unknown, defaults: Settings = DEFAULT_SETT
 				enabled: bool(isRecord(dg.reminder) ? dg.reminder.enabled : undefined, d.digest.reminder.enabled),
 				day: num(isRecord(dg.reminder) ? dg.reminder.day : undefined, d.digest.reminder.day, 0, 6),
 			},
-			lastReminded: typeof dg.lastReminded === "string" && /^d{4}-d{2}-d{2}$/.test(dg.lastReminded) ? dg.lastReminded : "",
+			lastReminded: typeof dg.lastReminded === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dg.lastReminded) ? dg.lastReminded : "",
 		},
 		connect: { enabled: bool(isRecord(loaded.connect) ? loaded.connect.enabled : undefined, d.connect.enabled) },
 		templates: {

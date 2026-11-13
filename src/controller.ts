@@ -28,7 +28,10 @@ import type { TFn } from "./i18n";
 import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
 import { PremortemModal } from "./ui/premortemModal";
-import { buildDigest, gatesFromText } from "./domain/v08";
+import { bodyOf, buildDigest, connectQuestion, gatesFromText, rankCandidates, relatedLine } from "./domain/v08";
+import type { ConnectNote } from "./domain/v08";
+import { ConnectModal } from "./ui/connectModal";
+import type { ConnectItem } from "./ui/connectModal";
 import { RecallSession, parseQaPairs, pickRecall, premortemPassed, premortemQuestions, retrievalReview } from "./domain/v08";
 import type { SelfRating } from "./domain/v08";
 import { RetrievalModal } from "./ui/retrievalModal";
@@ -543,6 +546,75 @@ export class Controller {
 						await this.host.repo.write(file, { tinjau: next });
 						new Notice(this.t("notice.recallSaved", { date: next }));
 					}
+				});
+			},
+		}).open();
+	}
+
+	// ---------- Connect (0.8.0) ----------
+
+	async connectActive(): Promise<void> {
+		const file = this.activeMarkdown();
+		if (!file) return;
+		if (!this.host.index.get(file.path)) {
+			new Notice(this.t("notice.notIdea"));
+			return;
+		}
+		await this.connect(file.path);
+	}
+
+	/** Kandidat hanya dari IdeaIndex (catatan Seedbed). Catatan lain tidak pernah dibaca. Tautan hanya setelah klik. */
+	async connect(path: string): Promise<void> {
+		if (!this.settings.connect.enabled) {
+			new Notice(this.t("notice.connectDisabled"));
+			return;
+		}
+		const cur = this.ideaOf(path);
+		if (!cur) return;
+		const { file } = cur;
+		const target: ConnectNote = { path, title: cur.idea.title, text: await this.app.vault.read(file) };
+		const pool = this.host.index.all().filter((i) => i.path !== path);
+		// Vault besar: baca isi hanya untuk 300 catatan dengan judul paling mirip dulu.
+		const byTitle = rankCandidates(
+			{ ...target, text: "" },
+			pool.map((i) => ({ path: i.path, title: i.title, text: "" })),
+			pool.length,
+		).map((x) => x.note.path);
+		const rest = pool.map((i) => i.path).filter((p) => !byTitle.includes(p));
+		const chosen = [...byTitle, ...rest].slice(0, 300);
+		const others: ConnectNote[] = [];
+		for (const p of chosen) {
+			const f = this.host.repo.getFile(p);
+			const idea = this.host.index.get(p);
+			if (!f || !idea) continue;
+			others.push({ path: p, title: idea.title, text: bodyOf(await this.app.vault.cachedRead(f)).slice(0, 600) });
+		}
+		const ranked = rankCandidates(target, others, 10);
+		if (ranked.length === 0) {
+			new Notice(this.t("notice.connectNone"));
+			return;
+		}
+		const lang = this.settings.language;
+		const items: ConnectItem[] = ranked.map((r) => ({ path: r.note.path, title: r.note.title, question: connectQuestion(lang, r.note.title), source: { kind: "bank" } }));
+		new ConnectModal(this.app, this.t, lang, items, {
+			addLink: async (item) => {
+				let added = false;
+				await this.safe(async () => {
+					added = await this.host.writer.appendLine(file, relatedLine(item.title));
+				});
+				return added;
+			},
+			onDone: (answers) => {
+				void this.safe(async () => {
+					if (answers.length === 0) return;
+					const entries: CalloutEntry[] = answers.map((a) => ({
+						label: a.item.title,
+						question: a.item.question,
+						answer: a.answer,
+						source: formatSource(a.item.source ?? { kind: "bank" }, lang),
+					}));
+					await this.host.writer.appendCallout(file, formatCallout("connect", this.t("callout.connect"), this.today(), entries, this.t("callout.answer")));
+					new Notice(this.t("notice.connectSaved"));
 				});
 			},
 		}).open();

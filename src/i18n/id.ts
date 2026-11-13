@@ -340,6 +340,24 @@ export const id = {
 	"set.digest.folder.desc": "Perintah \"Buat digest mingguan\" menulis catatan baru di sini. Tidak pernah menimpa.",
 	"set.digest.stuckDays": "Macet setelah (hari)",
 	"set.digest.stuckDays.desc": "Berdasarkan waktu ubah berkas: edit apa pun, termasuk sinkronisasi, mengeluarkan catatan dari Macet.",
+
+	// 0.8.0
+	"cmd.connect": "Hubungkan ide ini dengan ide lain (Connect)",
+	"connect.title": "Connect: hubungkan dengan ide lain",
+	"connect.intro": "Jawab dengan kata-katamu sendiri. Tautan hanya ditambahkan bila kamu menekan tombolnya.",
+	"connect.addLink": "Tambah tautan ke \"{title}\"",
+	"connect.linked": "Tautan ditambahkan",
+	"connect.alreadyLinked": "Tautan sudah ada",
+	"connect.answered": "Terjawab: {c} dari {n}",
+	"callout.connect": "Connect",
+	"notice.connectNone": "Tidak ada ide lain yang mirip. Tidak ada yang ditulis.",
+	"notice.connectDisabled": "Connect dimatikan di pengaturan.",
+	"notice.connectSaved": "Jawaban Connect tersimpan.",
+	"set.connect": "Connect",
+	"set.connect.enabled": "Aktifkan Connect",
+	"set.connect.enabled.desc": "Hanya membaca catatan Seedbed lain (type idea/concept). Catatan lain tidak pernah dibaca.",
+	"gaps.weakCircular": "melingkar",
+	"gaps.weakEmpty": "kosong",
 } as const;
 
 export type Key = keyof typeof id;

@@ -174,6 +174,17 @@ export class BengkelSettingTab extends PluginSettingTab {
 				}),
 			);
 
+		new Setting(containerEl).setName(t("set.connect")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.connect.enabled"))
+			.setDesc(t("set.connect.enabled.desc"))
+			.addToggle((c) =>
+				c.setValue(s.connect.enabled).onChange(async (v) => {
+					s.connect.enabled = v;
+					await save();
+				}),
+			);
+
 		new Setting(containerEl).setName(t("set.digest")).setHeading();
 		new Setting(containerEl)
 			.setName(t("set.digest.folder"))

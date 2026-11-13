@@ -144,6 +144,7 @@ export class FeynmanGapsView extends ItemView {
 					void this.controller.safe(() => this.controller.jumpTo(a.path, g.offset, g.length));
 				});
 				top.createSpan({ cls: "bengkel-tag", text: t("gaps.termMeta", { n: g.count }) });
+				if (g.weak) top.createSpan({ cls: "bengkel-tag bengkel-weak", text: t(g.weak === "circular" ? "gaps.weakCircular" : "gaps.weakEmpty") });
 				li.createDiv({ cls: "bengkel-meta", text: g.snippet });
 				if (g.ignored) {
 					li.createDiv({ cls: "bengkel-meta", text: t("gaps.ignored") });
