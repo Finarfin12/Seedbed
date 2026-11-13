@@ -22,7 +22,7 @@ export interface Gap {
 }
 
 /** Jenis callout milik plugin yang tidak dianalisis (jawaban sesi & petunjuk). */
-const SKIP_CALLOUTS = ["socratic", "devil", "feynman-hint", "premortem", "retrieval", "connect", "trigger", "pemicu", "quote"];
+const SKIP_CALLOUTS = ["socratic", "devil", "feynman-hint", "premortem", "retrieval", "connect", "evidence", "trigger", "pemicu", "quote"];
 
 const DEFINITION_VERBS = "adalah|yaitu|ialah|artinya|berarti|merupakan|is|means|refers\\s+to";
 

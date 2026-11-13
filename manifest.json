@@ -1,7 +1,7 @@
 {
 	"id": "seedbed",
 	"name": "Seedbed",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"minAppVersion": "1.8.7",
 	"description": "Grow ideas from seed to mature by passing thinking gates: Socratic, Devil's Advocate and Feynman. Optional AI only asks questions.",
 	"author": "Finarfin12",

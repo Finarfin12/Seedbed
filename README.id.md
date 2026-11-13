@@ -131,6 +131,7 @@ Dipakai bersama [skill agent Seedbed](https://github.com/Finarfin12/seedbed-skil
 - Setelah klik "Tambah tautan", satu baris `Related: [[Judul]]` ditambahkan di akhir catatan (tidak pernah ganda).
 - Baris isi yang diawali `[!` ditulis `\[!` supaya tidak menjadi callout baru.
 - Catatan digest (`Seedbed digest YYYY-MM-DD.md`) tidak punya `type`, jadi bukan catatan Seedbed.
+- `[!evidence]` (khusus skill): mode evidence di skill agent menulis kutipan web kata per kata beserta tautan di callout ini. Plugin tidak punya fitur itu dan mengabaikan isinya (tidak dianalisis Feynman, tidak pernah jadi sumber Recall).
 
 ### Templat
 
@@ -199,7 +200,7 @@ Tidak ada yang rusak saat upgrade:
 3. Blok kode, kode inline, frontmatter, komentar HTML, tujuan tautan, dan callout plugin tidak dianalisis.
 4. Kalimat lebih dari 25 kata ditandai sebagai **saran** (tidak menghalangi gerbang).
 
-Sejak 0.8.0 definisi juga ditandai bila **melingkar** ("entropi adalah entropi") atau **kosong** ("entropi adalah hal penting"): hanya pemeriksaan pola dan kata pengisi, tidak pernah menilai benar/salahnya isi. Isi callout `[!premortem]`, `[!retrieval]`, `[!connect]`, `[!trigger]` dan `[!quote]` tidak dianalisis.
+Sejak 0.8.0 definisi juga ditandai bila **melingkar** ("entropi adalah entropi") atau **kosong** ("entropi adalah hal penting"): hanya pemeriksaan pola dan kata pengisi, tidak pernah menilai benar/salahnya isi. Isi callout `[!premortem]`, `[!retrieval]`, `[!connect]`, `[!evidence]`, `[!trigger]` dan `[!quote]` tidak dianalisis.
 
 Ini pencocokan pola, bukan pemahaman. False positive pasti ada; pakai tombol **Abaikan** (per catatan) atau atur daftar jargon. Pemeriksaan membaca isi catatan yang **tersimpan di disk**.
 

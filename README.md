@@ -132,6 +132,7 @@ Shared with the [Seedbed agent skill](https://github.com/Finarfin12/seedbed-skil
 - After a click on "Add link", one line `Related: [[Title]]` is appended at the end of the note (never duplicated).
 - A line of content that starts with `[!` is written as `\[!` so it cannot become a new callout.
 - A digest note (`Seedbed digest YYYY-MM-DD.md`) has no `type`, so it is not a Seedbed note.
+- `[!evidence]` (skill only): the agent skill's evidence mode writes word-for-word web quotes with links in this callout. The plugin has no such feature and ignores its content (not analysed by Feynman, never a source for Recall).
 
 ### Templates
 
@@ -200,7 +201,7 @@ Nothing breaks when you upgrade:
 3. Code blocks, inline code, frontmatter, HTML comments, link targets, and the plugin's own callouts are skipped.
 4. Sentences longer than 25 words are flagged as **suggestions** (they don't block the gate).
 
-Since 0.8.0 a definition is also flagged when it is **circular** ("entropy is entropy") or **empty** ("entropy is an important thing"): pattern and filler-word checks only, never a judgement of whether the explanation is true. Text in `[!premortem]`, `[!retrieval]`, `[!connect]`, `[!trigger]` and `[!quote]` callouts is not analysed.
+Since 0.8.0 a definition is also flagged when it is **circular** ("entropy is entropy") or **empty** ("entropy is an important thing"): pattern and filler-word checks only, never a judgement of whether the explanation is true. Text in `[!premortem]`, `[!retrieval]`, `[!connect]`, `[!evidence]`, `[!trigger]` and `[!quote]` callouts is not analysed.
 
 This is pattern matching, not understanding. Expect false positives; use **Ignore** (per note) or tune the jargon list. The check reads the note as **saved on disk**.
 
