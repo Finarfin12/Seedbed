@@ -29,7 +29,7 @@ export type CaptureError = "bad-version" | "no-text";
 export type CaptureValidation = { ok: true; data: CaptureData } | { ok: false; error: CaptureError };
 
 // Karakter kontrol kecuali \n dan \t (dibuang). Termasuk \u0000-\u0008, \u000b, \u000c, \u000e-\u001f, \u007f, serta pemisah baris/paragraf Unicode.
-// eslint-disable-next-line no-control-regex
+// eslint-disable-next-line no-control-regex -- the regex must match control characters on purpose, to strip them from captured text
 const CONTROL = new RegExp(
 	"[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u2028\u2029\u202a-\u202e\u2066-\u2069]",
 	"g",
