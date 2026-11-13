@@ -39,3 +39,7 @@ extension/store/*.zip
 extension/store/images/_raw/
 extension/store/images/_src/
 extension/store/demo-vault/.obsidian/
+
+# QA 0.8.0 (vault dan profil sementara)
+qa/0.8.0/_vault/
+qa/0.8.0/_profile/

@@ -136,6 +136,16 @@ export default class SeedbedPlugin extends Plugin {
 		this.addCommand({ id: "make-concept", name: t("cmd.makeConcept"), callback: run(() => c.makeFromActive("konsep")) });
 		this.addCommand({ id: "promote", name: t("cmd.promote"), callback: run(() => c.promoteActive()) });
 		this.addCommand({ id: "challenge", name: t("cmd.challenge"), callback: run(() => c.challengeActive()) });
+		this.addCommand({
+			id: "premortem",
+			name: t("cmd.premortem"),
+			// Fitur dimatikan di pengaturan = perintah hilang dari palet.
+			checkCallback: (checking) => {
+				if (!this.settings.premortem.enabled) return false;
+				if (!checking) run(() => c.premortemActive())();
+				return true;
+			},
+		});
 		this.addCommand({ id: "start-feynman", name: t("cmd.startFeynman"), callback: run(() => c.startFeynman()) });
 		this.addCommand({ id: "check-feynman", name: t("cmd.checkFeynman"), callback: run(() => c.checkFeynmanActive()) });
 		this.addCommand({ id: "create-templates", name: t("cmd.createTemplates"), callback: run(() => c.createTemplates()) });

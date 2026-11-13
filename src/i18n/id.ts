@@ -278,6 +278,28 @@ export const id = {
 	"set.capture.confirm.desc": "Direkomendasikan tetap aktif: situs web mana pun bisa mencoba membuka link obsidian://. Dengan konfirmasi aktif tidak ada yang tersimpan tanpa kamu menyetujuinya.",
 	"set.capture.openAfter": "Buka catatan setelah tersimpan",
 	"set.capture.maxChars": "Batas karakter kutipan",
+
+	// 0.8.0
+	"cmd.premortem": "Pre-mortem ide ini",
+	"btn.premortem": "Pre-mortem",
+	"pm.title": "Pre-mortem",
+	"pm.intro": "Bayangkan ide ini sudah gagal. Jawab minimal {m} pertanyaan dengan sedikitnya {c} karakter. Status tidak berubah.",
+	"pm.answered": "Terjawab: {c} dari {n}. Lolos bila {m} jawaban cukup panjang.",
+	"cat.pmCause": "Penyebab",
+	"cat.pmSignal": "Sinyal awal",
+	"cat.pmAssumption": "Asumsi",
+	"cat.pmAffected": "Terdampak",
+	"cat.pmPrevent": "Pencegahan",
+	"callout.premortem": "Pre-mortem",
+	"notice.pmDisabled": "Pre-mortem dimatikan di pengaturan.",
+	"notice.pmNotMature": "Pre-mortem hanya untuk ide yang sudah matang.",
+	"notice.pmPassed": "Pre-mortem lolos. Status tidak berubah.",
+	"notice.pmSaved": "Jawaban tersimpan, tetapi belum cukup untuk lolos. Status tidak berubah.",
+	"set.premortem": "Pre-mortem",
+	"set.premortem.enabled": "Aktifkan pre-mortem",
+	"set.premortem.enabled.desc": "Gerbang opsional untuk ide matang. Tidak wajib untuk status apa pun.",
+	"set.premortem.minAnswered": "Minimal jawaban agar lolos (dari 5)",
+	"set.premortem.minChars": "Minimal karakter per jawaban",
 } as const;
 
 export type Key = keyof typeof id;

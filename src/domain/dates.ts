@@ -18,6 +18,14 @@ export function toISODate(d: Date): string {
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** Selisih hari dari `a` ke `b` (positif jika b setelah a). */
+export function daysBetween(a: string, b: string): number {
+	const pa = ISO_RE.exec(a);
+	const pb = ISO_RE.exec(b);
+	if (!pa || !pb) return 0;
+	return Math.round((Date.UTC(+pb[1]!, +pb[2]! - 1, +pb[3]!) - Date.UTC(+pa[1]!, +pa[2]! - 1, +pa[3]!)) / 86400000);
+}
+
 export function addDays(iso: string, days: number): string {
 	const m = ISO_RE.exec(iso);
 	if (!m) throw new Error(`Tanggal tidak valid: ${iso}`);

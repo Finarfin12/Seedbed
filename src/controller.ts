@@ -27,6 +27,8 @@ import { makeT } from "./i18n";
 import type { TFn } from "./i18n";
 import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
+import { PremortemModal } from "./ui/premortemModal";
+import { premortemPassed, premortemQuestions } from "./domain/v08";
 import { PromptModal } from "./ui/promptModal";
 import type { HintFn, SessionEntry } from "./ui/session";
 import { SocraticModal } from "./ui/socraticModal";
@@ -397,6 +399,63 @@ export class Controller {
 			hintsPerQuestion: this.settings.ai.hintsPerQuestion,
 			onDone: (entries) => {
 				void this.safe(() => onDone(entries));
+			},
+		}).open();
+	}
+
+	// ---------- Pre-mortem (0.8.0) ----------
+
+	async premortemActive(): Promise<void> {
+		const file = this.activeMarkdown();
+		if (!file) return;
+		if (!this.host.index.get(file.path)) {
+			new Notice(this.t("notice.notIdea"));
+			return;
+		}
+		await this.premortem(file.path);
+	}
+
+	/** Gerbang opsional untuk ide matang. Tidak mengubah status/review; hanya menambah 'premortem' ke gates bila lolos. */
+	async premortem(path: string): Promise<void> {
+		if (!this.settings.premortem.enabled) {
+			new Notice(this.t("notice.pmDisabled"));
+			return;
+		}
+		const cur = this.ideaOf(path);
+		if (!cur) return;
+		if (cur.idea.status !== "matang") {
+			new Notice(this.t("notice.pmNotMature"));
+			return;
+		}
+		const { file } = cur;
+		const lang = this.settings.language;
+		const items = premortemQuestions(lang).map((q) => ({ ...q, source: { kind: "bank" } as const }));
+		const cfg = this.settings.premortem;
+		new PremortemModal(this.app, this.t, lang, items, {
+			minAnswered: cfg.minAnswered,
+			minChars: cfg.minChars,
+			onDone: (answers) => {
+				void this.safe(async () => {
+					const filled = answers.filter((a) => a.answer.trim().length > 0);
+					if (filled.length === 0) return;
+					const entries: CalloutEntry[] = filled.map((a) => ({
+						label: this.t(`cat.${a.item.category}`),
+						question: a.item.text,
+						answer: a.answer.trim(),
+						source: formatSource(a.item.source ?? { kind: "bank" }, lang),
+					}));
+					await this.host.writer.appendCallout(
+						file,
+						formatCallout("premortem", this.t("callout.premortem"), this.today(), entries, this.t("callout.answer")),
+					);
+					const res = premortemPassed(answers.map((a) => a.answer), cfg.minAnswered, cfg.minChars);
+					if (res.passed) {
+						await this.host.repo.write(file, { addGates: ["premortem"] });
+						new Notice(this.t("notice.pmPassed"));
+					} else {
+						new Notice(this.t("notice.pmSaved"));
+					}
+				});
 			},
 		}).open();
 	}

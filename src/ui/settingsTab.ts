@@ -139,6 +139,20 @@ export class BengkelSettingTab extends PluginSettingTab {
 		number(containerEl, t("set.socraticMinChars"), "", () => s.socraticMinChars, (v) => (s.socraticMinChars = v), 0, 1000);
 		number(containerEl, t("set.devilMinAnswered"), "", () => s.devilMinAnswered, (v) => (s.devilMinAnswered = v), 1, 5);
 
+		new Setting(containerEl).setName(t("set.premortem")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.premortem.enabled"))
+			.setDesc(t("set.premortem.enabled.desc"))
+			.addToggle((c) =>
+				c.setValue(s.premortem.enabled).onChange(async (v) => {
+					s.premortem.enabled = v;
+					await save();
+					this.plugin.refreshViews();
+				}),
+			);
+		number(containerEl, t("set.premortem.minAnswered"), "", () => s.premortem.minAnswered, (v) => (s.premortem.minAnswered = v), 1, 5);
+		number(containerEl, t("set.premortem.minChars"), "", () => s.premortem.minChars, (v) => (s.premortem.minChars = v), 0, 1000);
+
 		new Setting(containerEl).setName(t("set.feynman")).setHeading();
 		new Setting(containerEl)
 			.setName(t("set.feynman.jargon"))

@@ -23,8 +23,12 @@ export interface Idea {
 	dibuat?: string;
 	tinjau?: string;
 	gerbang: GateId[];
+	/** Nilai `gates` lain yang tidak dikenal plugin (mis. "premortem"); hanya dibaca, dipertahankan saat menulis. */
+	gerbangLain?: string[];
 	/** Asal catatan (mis. "capture"). */
 	asal?: string;
+	/** Tanggal lokal waktu ubah berkas (file.stat.mtime): dasar "macet" (keputusan Q1). Edit manual atau sinkronisasi mengubahnya. */
+	tersentuh?: string;
 }
 
 /** Catatan yang punya properti bengkel-* tetapi nilainya salah. */
@@ -71,6 +75,14 @@ export interface Settings {
 	properties: PropNames;
 	/** Templat Obsidian milik Seedbed (Seedbed Idea.md / Seedbed Concept.md). */
 	templates: TemplateSettings;
+	/** Pre-mortem (gerbang opsional untuk catatan matang). */
+	premortem: { enabled: boolean; minAnswered: number; minChars: number };
+	/** Retrieval: latihan mengingat saat tinjau. */
+	retrieval: { enabled: boolean; adjustInterval: boolean };
+	/** Digest mingguan. */
+	digest: { folder: string; stuckDays: number; reminder: { enabled: boolean; day: number }; lastReminded: string };
+	/** Connect: hubungkan ide dengan catatan Seedbed lain. */
+	connect: { enabled: boolean };
 }
 
 export interface TemplateSettings {

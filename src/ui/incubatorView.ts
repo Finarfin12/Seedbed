@@ -155,6 +155,9 @@ export class IncubatorView extends ItemView {
 			act(t("btn.restore"), "undo-2", () => this.controller.transitionTo(path, "benih"));
 		} else {
 			if (nextStatus(idea.status)) act(t("btn.promote"), "arrow-up", () => this.controller.promote(path), "mod-cta");
+			if (idea.status === "matang" && this.getSettings().premortem.enabled && !idea.gerbangLain?.includes("premortem")) {
+				act(t("btn.premortem"), "skull", () => this.controller.premortem(path));
+			}
 			if (idea.status === "matang") act(t("btn.reopen"), "rotate-ccw", () => this.controller.transitionTo(path, "tumbuh"));
 			act(t("btn.snooze", { n: this.getSettings().snoozeDays }), "clock", () => this.controller.snooze(path));
 			act(t("btn.discard"), "trash-2", () => this.controller.transitionTo(path, "dibuang"));
