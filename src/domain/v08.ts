@@ -137,11 +137,12 @@ export function parseQaPairs(text: string): QaPair[] {
 			continue;
 		}
 		if (!cur) continue;
+		const unesc = (x: string) => x.replace(/^(\s*)\\\[!/, "$1[!");
 		const ans = /^(Answer|Jawaban):\s?(.*)$/.exec(body);
 		if (ans) {
 			cur.inAnswer = true;
-			cur.a.push(ans[2] as string);
-		} else if (cur.inAnswer) cur.a.push(body);
+			cur.a.push(unesc(ans[2] as string));
+		} else if (cur.inAnswer) cur.a.push(unesc(body));
 		else cur.q.push(body);
 	}
 	flush();
@@ -158,6 +159,35 @@ export function pickRecall(pairs: QaPair[], n: number, pick: () => number = Math
 		if (p && !out.some((o) => o.question === p.question)) out.push(p);
 	}
 	return out;
+}
+
+/**
+ * Sesi retrieval (RT-2). Jawaban lama disimpan privat di sini dan HANYA keluar lewat submit() setelah ada jawaban baru.
+ * Modal hanya memegang `questions()` (tanpa jawaban lama).
+ */
+export class RecallSession {
+	private old: string[];
+	private given: Array<string | null>;
+	constructor(private pairs: QaPair[]) {
+		this.old = pairs.map((p) => p.answer);
+		this.given = pairs.map(() => null);
+	}
+	questions(): Array<{ label: string; question: string; callout: string }> {
+		return this.pairs.map((p) => ({ label: p.label, question: p.question, callout: p.callout }));
+	}
+	/** Mengembalikan jawaban lama hanya bila jawaban baru tidak kosong; selain itu null. Satu kali per pertanyaan. */
+	submit(i: number, answer: string): string | null {
+		if (i < 0 || i >= this.old.length || answer.trim().length === 0) return null;
+		if (this.given[i] === null) this.given[i] = answer.trim();
+		return this.old[i] as string;
+	}
+	answered(): Array<{ index: number; pair: QaPair; answer: string }> {
+		const out: Array<{ index: number; pair: QaPair; answer: string }> = [];
+		this.given.forEach((g, index) => {
+			if (g !== null) out.push({ index, pair: this.pairs[index] as QaPair, answer: g });
+		});
+		return out;
+	}
 }
 
 export type SelfRating = "remembered" | "partly" | "forgot";

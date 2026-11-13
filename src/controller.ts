@@ -28,7 +28,9 @@ import type { TFn } from "./i18n";
 import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
 import { PremortemModal } from "./ui/premortemModal";
-import { premortemPassed, premortemQuestions } from "./domain/v08";
+import { RecallSession, parseQaPairs, pickRecall, premortemPassed, premortemQuestions, retrievalReview } from "./domain/v08";
+import type { SelfRating } from "./domain/v08";
+import { RetrievalModal } from "./ui/retrievalModal";
 import { PromptModal } from "./ui/promptModal";
 import type { HintFn, SessionEntry } from "./ui/session";
 import { SocraticModal } from "./ui/socraticModal";
@@ -47,6 +49,7 @@ export interface PluginHost {
 	refreshTemplateFolder(): Promise<void>;
 	getQuestionService(): QuestionService;
 	saveSettings(): Promise<void>;
+	refreshViews(): void;
 	openIncubator(): Promise<void>;
 	showGaps(path: string): Promise<void>;
 }
@@ -61,6 +64,10 @@ export interface Analysis {
 /** Orkestrasi aksi pengguna: menggabungkan domain (aturan) dengan adapter (vault) dan UI. */
 export class Controller {
 	constructor(private host: PluginHost) {}
+
+	/** path -> ada jejak jawaban lama? (cache per mtime supaya Inkubator tidak membaca berkas saat render) */
+	private recallCache = new Map<string, { mtime: number; has: boolean }>();
+	private recallBusy = new Set<string>();
 
 	private get app(): App {
 		return this.host.app;
@@ -454,6 +461,86 @@ export class Controller {
 						new Notice(this.t("notice.pmPassed"));
 					} else {
 						new Notice(this.t("notice.pmSaved"));
+					}
+				});
+			},
+		}).open();
+	}
+
+	// ---------- Retrieval (0.8.0) ----------
+
+	/** Sinkron: pakai cache; bila belum ada, hitung di latar belakang lalu segarkan tampilan. */
+	hasRecall(path: string): boolean {
+		if (!this.settings.retrieval.enabled) return false;
+		const file = this.host.repo.getFile(path);
+		if (!file) return false;
+		const hit = this.recallCache.get(path);
+		if (hit && hit.mtime === file.stat.mtime) return hit.has;
+		if (!this.recallBusy.has(path)) {
+			this.recallBusy.add(path);
+			const mtime = file.stat.mtime;
+			void this.app.vault
+				.cachedRead(file)
+				.then((text) => {
+					this.recallCache.set(path, { mtime, has: parseQaPairs(text).length > 0 });
+					this.recallBusy.delete(path);
+					this.host.refreshViews();
+				})
+				.catch(() => this.recallBusy.delete(path));
+		}
+		return false;
+	}
+
+	async recallActive(): Promise<void> {
+		const file = this.activeMarkdown();
+		if (!file) return;
+		if (!this.host.index.get(file.path)) {
+			new Notice(this.t("notice.notIdea"));
+			return;
+		}
+		await this.recall(file.path);
+	}
+
+	/** Latihan mengingat: pertanyaan lama dulu, jawaban lama baru terbuka setelah jawaban baru dikirim. Tanpa skor. */
+	async recall(path: string): Promise<void> {
+		if (!this.settings.retrieval.enabled) {
+			new Notice(this.t("notice.recallDisabled"));
+			return;
+		}
+		const cur = this.ideaOf(path);
+		if (!cur) return;
+		const { idea, file } = cur;
+		const text = await this.app.vault.read(file);
+		const picked = idea.status === "dibuang" ? [] : pickRecall(parseQaPairs(text), 2);
+		if (picked.length === 0) {
+			new Notice(this.t("notice.recallNone"));
+			return;
+		}
+		const session = new RecallSession(picked);
+		const lang = this.settings.language;
+		new RetrievalModal(this.app, this.t, {
+			questions: session.questions().map((q) => ({ label: q.label, question: q.question })),
+			submit: (i, a) => session.submit(i, a),
+			onFinish: (_count, rating: SelfRating | undefined) => {
+				void this.safe(async () => {
+					const done = session.answered();
+					if (done.length === 0) return;
+					const entries: CalloutEntry[] = done.map((d) => ({
+						label: this.t("callout.recallLabel"),
+						question: d.pair.question,
+						answer: d.answer,
+						source: formatSource({ kind: "bank" }, lang),
+						meta: rating ? [rating] : [],
+						extra: [{ label: this.t("callout.earlier"), text: d.pair.answer }],
+					}));
+					await this.host.writer.appendCallout(
+						file,
+						formatCallout("retrieval", this.t("callout.retrieval"), this.today(), entries, this.t("callout.answer")),
+					);
+					const next = retrievalReview(idea.status, rating, this.today(), this.settings);
+					if (next !== null) {
+						await this.host.repo.write(file, { tinjau: next });
+						new Notice(this.t("notice.recallSaved", { date: next }));
 					}
 				});
 			},
