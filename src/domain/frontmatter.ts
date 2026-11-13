@@ -113,6 +113,13 @@ function asDate(v: unknown): string | undefined {
 	return undefined;
 }
 
+function otherGates(v: unknown): string[] {
+	const list = Array.isArray(v) ? v : typeof v === "string" ? [v] : [];
+	const out: string[] = [];
+	for (const g of list) if (typeof g === "string" && !(GATE_IDS as readonly unknown[]).includes(g) && !out.includes(g)) out.push(g);
+	return out;
+}
+
 function asGates(v: unknown): GateId[] {
 	const list = Array.isArray(v) ? v : typeof v === "string" ? [v] : [];
 	const out: GateId[] = [];
@@ -152,6 +159,7 @@ export function parseIdeaNote(path: string, title: string, fm: FM | null | undef
 		dibuat: asDate(get("created")),
 		tinjau: asDate(get("review")),
 		gerbang: asGates(get("gates")),
+		...(otherGates(get("gates")).length ? { gerbangLain: otherGates(get("gates")) } : {}),
 		asal: typeof origin === "string" ? origin : undefined,
 	};
 	return { kind: "idea", idea };
@@ -237,6 +245,8 @@ export interface IdeaPatch {
 	dibuat?: string;
 	tinjau?: string | null;
 	gerbang?: GateId[];
+	/** Nilai `gates` tambahan yang tidak ada di GateId (mis. "premortem"). */
+	addGates?: string[];
 	/** URL sumber (tangkapan dari ekstensi). */
 	sumber?: string;
 	/** Asal catatan, mis. "capture". */
@@ -255,7 +265,15 @@ export function applyPatch(fm: FM, patch: IdeaPatch, names: PropNames = DEFAULT_
 	if (patch.dibuat !== undefined) fm[names.created] = patch.dibuat;
 	if (patch.tinjau === null) delete fm[names.review];
 	else if (patch.tinjau !== undefined) fm[names.review] = patch.tinjau;
-	if (patch.gerbang !== undefined) fm[names.gates] = [...patch.gerbang];
+	if (patch.gerbang !== undefined || patch.addGates !== undefined) {
+		// G-1: nilai `gates` yang tidak dikenal (mis. "premortem" dari skill) dipertahankan, tidak dihapus.
+		const prev = fm[names.gates];
+		const list = Array.isArray(prev) ? prev : typeof prev === "string" ? [prev] : [];
+		const known = patch.gerbang !== undefined ? [...patch.gerbang] : list.filter((g): g is GateId => (GATE_IDS as readonly unknown[]).includes(g));
+		const extra = list.filter((g) => typeof g === "string" && !(GATE_IDS as readonly unknown[]).includes(g));
+		for (const g of patch.addGates ?? []) if (!extra.includes(g)) extra.push(g);
+		fm[names.gates] = [...known, ...extra];
+	}
 	if (patch.sumber !== undefined) fm[names.source] = patch.sumber;
 	if (patch.asal !== undefined) fm[names.origin] = patch.asal;
 }

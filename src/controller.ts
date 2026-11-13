@@ -8,7 +8,7 @@ import type { IdeaRepository } from "./adapter/repository";
 import type { TermSource } from "./adapter/termSource";
 import { formatCallout } from "./domain/callout";
 import type { CalloutEntry } from "./domain/callout";
-import { toISODate } from "./domain/dates";
+import { daysBetween, toISODate } from "./domain/dates";
 import { analyze } from "./domain/feynman/analyzer";
 import type { Gap } from "./domain/feynman/analyzer";
 import { hasLegacyProps, planAdopt } from "./domain/frontmatter";
@@ -27,6 +27,17 @@ import { makeT } from "./i18n";
 import type { TFn } from "./i18n";
 import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
+import { PremortemModal } from "./ui/premortemModal";
+import { suggest } from "./domain/v08";
+import { bodyOf, buildDigest, connectQuestion, gatesFromText, rankCandidates, relatedLine } from "./domain/v08";
+import type { ConnectNote } from "./domain/v08";
+import { ConnectModal } from "./ui/connectModal";
+import type { ConnectItem } from "./ui/connectModal";
+import { PREMORTEM_CATEGORIES } from "./domain/v08";
+import type { SourceLabel } from "./domain/ai/types";
+import { RecallSession, parseQaPairs, pickRecall, premortemPassed, premortemQuestions, retrievalReview } from "./domain/v08";
+import type { SelfRating } from "./domain/v08";
+import { RetrievalModal } from "./ui/retrievalModal";
 import { PromptModal } from "./ui/promptModal";
 import type { HintFn, SessionEntry } from "./ui/session";
 import { SocraticModal } from "./ui/socraticModal";
@@ -45,6 +56,7 @@ export interface PluginHost {
 	refreshTemplateFolder(): Promise<void>;
 	getQuestionService(): QuestionService;
 	saveSettings(): Promise<void>;
+	refreshViews(): void;
 	openIncubator(): Promise<void>;
 	showGaps(path: string): Promise<void>;
 }
@@ -59,6 +71,20 @@ export interface Analysis {
 /** Orkestrasi aksi pengguna: menggabungkan domain (aturan) dengan adapter (vault) dan UI. */
 export class Controller {
 	constructor(private host: PluginHost) {}
+
+	/** path -> ada jejak jawaban lama? (cache per mtime supaya Inkubator tidak membaca berkas saat render) */
+	private recallCache = new Map<string, { mtime: number; has: boolean }>();
+	private recallBusy = new Set<string>();
+	/** FY-2: jumlah pertanyaan lanjutan yang sudah diminta per (catatan|istilah) pada sesi ini. */
+	private followCount = new Map<string, number>();
+
+	/** AI aktif tetapi gagal: beri tahu, lalu pemanggil memakai bank/aturan. */
+	private noticeAiFailed(svc: QuestionService): void {
+		if (!svc.aiAvailable) return;
+		const fails = svc.lastAttempts.filter((a) => !a.ok);
+		const reason = (fails.length ? fails.map((a) => a.provider + ": " + (a.error ?? "error")).join("; ") : "no valid output").slice(0, 200);
+		new Notice(this.t("notice.aiFailedBank", { reason }));
+	}
 
 	private get app(): App {
 		return this.host.app;
@@ -399,6 +425,284 @@ export class Controller {
 				void this.safe(() => onDone(entries));
 			},
 		}).open();
+	}
+
+	// ---------- Pre-mortem (0.8.0) ----------
+
+	async premortemActive(): Promise<void> {
+		const file = this.activeMarkdown();
+		if (!file) return;
+		if (!this.host.index.get(file.path)) {
+			new Notice(this.t("notice.notIdea"));
+			return;
+		}
+		await this.premortem(file.path);
+	}
+
+	/** Gerbang opsional untuk ide matang. Tidak mengubah status/review; hanya menambah 'premortem' ke gates bila lolos. */
+	async premortem(path: string): Promise<void> {
+		if (!this.settings.premortem.enabled) {
+			new Notice(this.t("notice.pmDisabled"));
+			return;
+		}
+		const cur = this.ideaOf(path);
+		if (!cur) return;
+		if (cur.idea.status !== "matang") {
+			new Notice(this.t("notice.pmNotMature"));
+			return;
+		}
+		const { file } = cur;
+		const lang = this.settings.language;
+		let items: Array<{ category: (typeof PREMORTEM_CATEGORIES)[number]; text: string; source: SourceLabel }> = premortemQuestions(lang).map((q) => ({ ...q, source: { kind: "bank" } as SourceLabel }));
+		const svc = this.host.getQuestionService();
+		if (svc.aiAvailable) {
+			new Notice(this.t("notice.aiPreparing"));
+			const ai = await svc.premortemBatch({ language: lang, noteText: await this.app.vault.read(file) });
+			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, text: ai.texts[i] as string, source: ai.source } : it));
+			else this.noticeAiFailed(svc);
+		}
+		const cfg = this.settings.premortem;
+		new PremortemModal(this.app, this.t, lang, items, {
+			minAnswered: cfg.minAnswered,
+			minChars: cfg.minChars,
+			onDone: (answers) => {
+				void this.safe(async () => {
+					const filled = answers.filter((a) => a.answer.trim().length > 0);
+					if (filled.length === 0) return;
+					const entries: CalloutEntry[] = filled.map((a) => ({
+						label: this.t(`cat.${a.item.category}`),
+						question: a.item.text,
+						answer: a.answer.trim(),
+						source: formatSource(a.item.source ?? { kind: "bank" }, lang),
+					}));
+					await this.host.writer.appendCallout(
+						file,
+						formatCallout("premortem", this.t("callout.premortem"), this.today(), entries, this.t("callout.answer")),
+					);
+					const res = premortemPassed(answers.map((a) => a.answer), cfg.minAnswered, cfg.minChars);
+					if (res.passed) {
+						await this.host.repo.write(file, { addGates: ["premortem"] });
+						new Notice(this.t("notice.pmPassed"));
+					} else {
+						new Notice(this.t("notice.pmSaved"));
+					}
+				});
+			},
+		}).open();
+	}
+
+	// ---------- Retrieval (0.8.0) ----------
+
+	/** Sinkron: pakai cache; bila belum ada, hitung di latar belakang lalu segarkan tampilan. */
+	hasRecall(path: string): boolean {
+		if (!this.settings.retrieval.enabled) return false;
+		const file = this.host.repo.getFile(path);
+		if (!file) return false;
+		const hit = this.recallCache.get(path);
+		if (hit && hit.mtime === file.stat.mtime) return hit.has;
+		if (!this.recallBusy.has(path)) {
+			this.recallBusy.add(path);
+			const mtime = file.stat.mtime;
+			void this.app.vault
+				.cachedRead(file)
+				.then((text) => {
+					this.recallCache.set(path, { mtime, has: parseQaPairs(text).length > 0 });
+					this.recallBusy.delete(path);
+					this.host.refreshViews();
+				})
+				.catch(() => this.recallBusy.delete(path));
+		}
+		return false;
+	}
+
+	async recallActive(): Promise<void> {
+		const file = this.activeMarkdown();
+		if (!file) return;
+		if (!this.host.index.get(file.path)) {
+			new Notice(this.t("notice.notIdea"));
+			return;
+		}
+		await this.recall(file.path);
+	}
+
+	/** Latihan mengingat: pertanyaan lama dulu, jawaban lama baru terbuka setelah jawaban baru dikirim. Tanpa skor. */
+	async recall(path: string): Promise<void> {
+		if (!this.settings.retrieval.enabled) {
+			new Notice(this.t("notice.recallDisabled"));
+			return;
+		}
+		const cur = this.ideaOf(path);
+		if (!cur) return;
+		const { idea, file } = cur;
+		const text = await this.app.vault.read(file);
+		const picked = idea.status === "dibuang" ? [] : pickRecall(parseQaPairs(text), 2);
+		if (picked.length === 0) {
+			new Notice(this.t("notice.recallNone"));
+			return;
+		}
+		const session = new RecallSession(picked);
+		const lang = this.settings.language;
+		new RetrievalModal(this.app, this.t, {
+			questions: session.questions().map((q) => ({ label: q.label, question: q.question })),
+			submit: (i, a) => session.submit(i, a),
+			onFinish: (_count, rating: SelfRating | undefined) => {
+				void this.safe(async () => {
+					const done = session.answered();
+					if (done.length === 0) return;
+					const entries: CalloutEntry[] = done.map((d) => ({
+						label: this.t("callout.recallLabel"),
+						question: d.pair.question,
+						answer: d.answer,
+						source: formatSource({ kind: "bank" }, lang),
+						meta: rating ? [rating] : [],
+						extra: [{ label: this.t("callout.earlier"), text: d.pair.answer }],
+					}));
+					await this.host.writer.appendCallout(
+						file,
+						formatCallout("retrieval", this.t("callout.retrieval"), this.today(), entries, this.t("callout.answer")),
+					);
+					const next = retrievalReview(idea.status, rating, this.today(), this.settings);
+					if (next !== null) {
+						await this.host.repo.write(file, { tinjau: next });
+						new Notice(this.t("notice.recallSaved", { date: next }));
+					}
+				});
+			},
+		}).open();
+	}
+
+	// ---------- Connect (0.8.0) ----------
+
+	async connectActive(): Promise<void> {
+		const file = this.activeMarkdown();
+		if (!file) return;
+		if (!this.host.index.get(file.path)) {
+			new Notice(this.t("notice.notIdea"));
+			return;
+		}
+		await this.connect(file.path);
+	}
+
+	/** Kandidat hanya dari IdeaIndex (catatan Seedbed). Catatan lain tidak pernah dibaca. Tautan hanya setelah klik. */
+	async connect(path: string): Promise<void> {
+		if (!this.settings.connect.enabled) {
+			new Notice(this.t("notice.connectDisabled"));
+			return;
+		}
+		const cur = this.ideaOf(path);
+		if (!cur) return;
+		const { file } = cur;
+		const target: ConnectNote = { path, title: cur.idea.title, text: await this.app.vault.read(file) };
+		const pool = this.host.index.all().filter((i) => i.path !== path);
+		// Vault besar: baca isi hanya untuk 300 catatan dengan judul paling mirip dulu.
+		const byTitle = rankCandidates(
+			{ ...target, text: "" },
+			pool.map((i) => ({ path: i.path, title: i.title, text: "" })),
+			pool.length,
+		).map((x) => x.note.path);
+		const rest = pool.map((i) => i.path).filter((p) => !byTitle.includes(p));
+		const chosen = [...byTitle, ...rest].slice(0, 300);
+		const others: ConnectNote[] = [];
+		for (const p of chosen) {
+			const f = this.host.repo.getFile(p);
+			const idea = this.host.index.get(p);
+			if (!f || !idea) continue;
+			others.push({ path: p, title: idea.title, text: bodyOf(await this.app.vault.cachedRead(f)).slice(0, 600) });
+		}
+		const ranked = rankCandidates(target, others, 10);
+		if (ranked.length === 0) {
+			new Notice(this.t("notice.connectNone"));
+			return;
+		}
+		const lang = this.settings.language;
+		let items: ConnectItem[] = ranked.map((r) => ({ path: r.note.path, title: r.note.title, question: connectQuestion(lang, r.note.title), source: { kind: "bank" } }));
+		const svc = this.host.getQuestionService();
+		if (svc.aiAvailable) {
+			new Notice(this.t("notice.aiPreparing"));
+			// Hanya catatan aktif + (judul, 300 karakter pertama) kandidat Seedbed yang dikirim. Tanpa path.
+			const ai = await svc.connectBatch(
+				{ language: lang, noteText: target.text },
+				ranked.map((r) => ({ title: r.note.title, text: r.note.text })),
+			);
+			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, question: ai.texts[i] as string, source: ai.source } : it));
+			else this.noticeAiFailed(svc);
+		}
+		new ConnectModal(this.app, this.t, lang, items, {
+			addLink: async (item) => {
+				let added = false;
+				await this.safe(async () => {
+					added = await this.host.writer.appendLine(file, relatedLine(item.title));
+				});
+				return added;
+			},
+			onDone: (answers) => {
+				void this.safe(async () => {
+					if (answers.length === 0) return;
+					const entries: CalloutEntry[] = answers.map((a) => ({
+						label: a.item.title,
+						question: a.item.question,
+						answer: a.answer,
+						source: formatSource(a.item.source ?? { kind: "bank" }, lang),
+					}));
+					await this.host.writer.appendCallout(file, formatCallout("connect", this.t("callout.connect"), this.today(), entries, this.t("callout.answer")));
+					new Notice(this.t("notice.connectSaved"));
+				});
+			},
+		}).open();
+	}
+
+	// ---------- Digest (0.8.0) ----------
+
+	/** Digest mingguan: tulis `Seedbed digest YYYY-MM-DD.md` (tidak menimpa). Hanya catatan Seedbed yang dibaca. */
+	async createDigest(): Promise<void> {
+		const today = this.today();
+		const ideas = this.host.index.all();
+		const gatesThisWeek: Array<{ title: string; gate: string }> = [];
+		for (const idea of ideas) {
+			// Hanya catatan yang diedit dalam 7 hari terakhir yang mungkin punya callout baru.
+			if (idea.status === "dibuang" || !idea.tersentuh || daysBetween(idea.tersentuh, today) > 7) continue;
+			const file = this.host.repo.getFile(idea.path);
+			if (!file) continue;
+			const text = await this.app.vault.cachedRead(file);
+			for (const gate of gatesFromText(text, today)) gatesThisWeek.push({ title: idea.title, gate });
+		}
+		let suggestQuestion: { text: string; source: string } | undefined;
+		const svc = this.host.getQuestionService();
+		const sug = svc.aiAvailable ? suggest(ideas, today, this.settings.digest.stuckDays) : null;
+		if (sug) {
+			const facts = (sug.reasonKey === "due" ? "review overdue " : "not edited for ") + sug.days + " days; status " + sug.idea.status;
+			const ai = await svc.digestQuestion(this.settings.language, sug.idea.title, facts);
+			if (ai) suggestQuestion = { text: ai.text, source: formatSource(ai.source, this.settings.language) };
+			else this.noticeAiFailed(svc);
+		}
+		const body = buildDigest({ ideas, today, stuckDays: this.settings.digest.stuckDays, gatesThisWeek, lang: this.settings.language, suggestQuestion });
+		const file = await this.host.factory.createDigest(this.settings.digest.folder, `Seedbed digest ${today}`, body);
+		new Notice(this.t("notice.digestCreated", { path: file.path }));
+		await this.app.workspace.getLeaf(false).openFile(file);
+	}
+
+	// ---------- Feynman: tanya lanjut (FY-2) ----------
+
+	get aiFollowUp(): boolean {
+		return this.host.getQuestionService().aiAvailable;
+	}
+
+	followUpLeft(path: string, key: string): number {
+		return Math.max(0, 2 - (this.followCount.get(path + "|" + key) ?? 0));
+	}
+
+	/** Maks. 2 pertanyaan per celah per sesi; tidak disimpan di catatan. Gerbang tetap dihitung analyze(). */
+	async followUp(path: string, gap: Gap): Promise<{ text: string; source: string } | null> {
+		const svc = this.host.getQuestionService();
+		const k = path + "|" + gap.key;
+		if (!svc.aiAvailable || this.followUpLeft(path, gap.key) <= 0) return null;
+		const res = await svc.followUp(this.settings.language, gap.term, gap.weak ?? "missing", gap.snippet);
+		if (!res) {
+			this.noticeAiFailed(svc);
+			return null;
+		}
+		this.followCount.set(k, (this.followCount.get(k) ?? 0) + 1);
+		return { text: res.text, source: formatSource(res.source, this.settings.language) };
 	}
 
 	// ---------- Feynman ----------

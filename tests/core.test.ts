@@ -113,6 +113,7 @@ describe("frontmatter parse", () => {
 				dibuat: "2026-11-01",
 				tinjau: "2026-11-15",
 				gerbang: ["socratic"],
+				gerbangLain: ["bogus"],
 			},
 		});
 	});

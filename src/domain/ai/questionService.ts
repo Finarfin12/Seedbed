@@ -3,6 +3,17 @@ import type { StaticQuestionProvider } from "../questions/staticProvider";
 import type { Language } from "../types";
 import type { Attempt, ProviderChain } from "./chain";
 import { parseBatchQuestions, parseHint, parseSingleQuestion } from "./outputValidator";
+import {
+	buildConnectPrompt,
+	buildDigestPrompt,
+	buildFollowUpPrompt,
+	buildPremortemPrompt,
+	parseConnectBatch,
+	parseDigestQuestion,
+	parseFollowUp,
+	parsePremortemBatch,
+} from "./extras";
+import type { CandidateSnippet, WeakKind } from "./extras";
 import { buildBatchPrompt, buildHintPrompt, buildSingleQuestionPrompt, categoriesFor } from "./promptBuilder";
 import type { PreviousAnswer, SourceLabel } from "./types";
 
@@ -88,6 +99,43 @@ export class QuestionService {
 			if (res.value && res.source) return { kind, category, text: res.value, source: res.source } as Question;
 		}
 		return this.staticQuestion(kind, category, ctx);
+	}
+
+	// ---- 0.8.0: semua jalur AI mengembalikan null bila AI mati (tanpa panggilan apa pun) atau gagal (pemanggil memakai bank/aturan). ----
+
+	/** Pre-mortem: 5 pertanyaan spesifik isi catatan. Slot yang ditolak validator = null (diisi bank oleh pemanggil). */
+	async premortemBatch(ctx: ServiceCtx): Promise<{ texts: Array<string | null>; source: SourceLabel } | null> {
+		if (!this.chain || this.chain.size === 0) return null;
+		const prompt = buildPremortemPrompt({ language: ctx.language, noteText: ctx.noteText, maxContextChars: this.cfg.maxContextChars });
+		const res = await this.chain.run(prompt, parsePremortemBatch);
+		this.lastAttempts = res.attempts;
+		return res.value && res.source ? { texts: res.value, source: res.source } : null;
+	}
+
+	/** Connect: satu pertanyaan per kandidat. Hanya catatan aktif + judul/300 karakter kandidat yang dikirim. */
+	async connectBatch(ctx: ServiceCtx, candidates: CandidateSnippet[]): Promise<{ texts: Array<string | null>; source: SourceLabel } | null> {
+		if (!this.chain || this.chain.size === 0 || candidates.length === 0) return null;
+		const prompt = buildConnectPrompt({ language: ctx.language, noteText: ctx.noteText, candidates, maxContextChars: this.cfg.maxContextChars });
+		const n = Math.min(candidates.length, 10);
+		const res = await this.chain.run(prompt, (raw) => parseConnectBatch(raw, n));
+		this.lastAttempts = res.attempts;
+		return res.value && res.source ? { texts: res.value, source: res.source } : null;
+	}
+
+	/** Digest: satu kalimat tanya untuk ide yang disarankan (hanya judul + fakta aturan, tanpa isi catatan). */
+	async digestQuestion(language: ServiceCtx["language"], title: string, reason: string): Promise<{ text: string; source: SourceLabel } | null> {
+		if (!this.chain || this.chain.size === 0) return null;
+		const res = await this.chain.run(buildDigestPrompt({ language, title, reason }), parseDigestQuestion);
+		this.lastAttempts = res.attempts;
+		return res.value && res.source ? { text: res.value, source: res.source } : null;
+	}
+
+	/** Feynman: pertanyaan lanjutan untuk satu celah (tidak boleh mendefinisikan istilah). */
+	async followUp(language: ServiceCtx["language"], term: string, kind: WeakKind, snippet: string): Promise<{ text: string; source: SourceLabel } | null> {
+		if (!this.chain || this.chain.size === 0) return null;
+		const res = await this.chain.run(buildFollowUpPrompt({ language, term, kind, snippet }), parseFollowUp(term));
+		this.lastAttempts = res.attempts;
+		return res.value && res.source ? { text: res.value, source: res.source } : null;
 	}
 
 	/** Petunjuk bertingkat (R-3). null bila AI tidak tersedia/gagal (tombol disembunyikan/dinonaktifkan). */

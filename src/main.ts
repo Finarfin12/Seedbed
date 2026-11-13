@@ -1,3 +1,4 @@
+import { reminderDue } from "./domain/v08";
 import { Notice, Platform, Plugin, TFile, getLanguage, normalizePath } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { createQuestionService } from "./adapter/ai/factory";
@@ -136,6 +137,35 @@ export default class SeedbedPlugin extends Plugin {
 		this.addCommand({ id: "make-concept", name: t("cmd.makeConcept"), callback: run(() => c.makeFromActive("konsep")) });
 		this.addCommand({ id: "promote", name: t("cmd.promote"), callback: run(() => c.promoteActive()) });
 		this.addCommand({ id: "challenge", name: t("cmd.challenge"), callback: run(() => c.challengeActive()) });
+		this.addCommand({
+			id: "premortem",
+			name: t("cmd.premortem"),
+			// Fitur dimatikan di pengaturan = perintah hilang dari palet.
+			checkCallback: (checking) => {
+				if (!this.settings.premortem.enabled) return false;
+				if (!checking) run(() => c.premortemActive())();
+				return true;
+			},
+		});
+		this.addCommand({
+			id: "recall",
+			name: t("cmd.recall"),
+			checkCallback: (checking) => {
+				if (!this.settings.retrieval.enabled) return false;
+				if (!checking) run(() => c.recallActive())();
+				return true;
+			},
+		});
+		this.addCommand({
+			id: "connect",
+			name: t("cmd.connect"),
+			checkCallback: (checking) => {
+				if (!this.settings.connect.enabled) return false;
+				if (!checking) run(() => c.connectActive())();
+				return true;
+			},
+		});
+		this.addCommand({ id: "create-digest", name: t("cmd.digest"), callback: run(() => c.createDigest()) });
 		this.addCommand({ id: "start-feynman", name: t("cmd.startFeynman"), callback: run(() => c.startFeynman()) });
 		this.addCommand({ id: "check-feynman", name: t("cmd.checkFeynman"), callback: run(() => c.checkFeynmanActive()) });
 		this.addCommand({ id: "create-templates", name: t("cmd.createTemplates"), callback: run(() => c.createTemplates()) });
@@ -271,9 +301,29 @@ export default class SeedbedPlugin extends Plugin {
 		this.statusBarEl.toggleClass("is-empty", n === 0);
 	}
 
+	/** DG-6: pengingat digest mingguan (default mati), paling banyak sekali seminggu. */
+	private digestReminder(): void {
+		const today = this.controller.today();
+		if (!reminderDue(this.settings, today, new Date().getDay())) return;
+		this.settings.digest.lastReminded = today;
+		void this.saveSettings();
+		const t = this.controller.t;
+		const notice: { n?: Notice } = {};
+		const frag = createFragment((f) => {
+			f.createSpan({ text: t("notice.digestReminder") + " " });
+			const b = f.createEl("button", { text: t("btn.createDigest") });
+			b.addEventListener("click", () => {
+				notice.n?.hide();
+				void this.controller.safe(() => this.controller.createDigest());
+			});
+		});
+		notice.n = new Notice(frag, 15000);
+	}
+
 	private notifyStartup(): void {
 		if (this.startupNotified) return;
 		this.startupNotified = true;
+		this.digestReminder();
 		if (!this.settings.notifyOnStartup) return;
 		const n = this.index.due(this.controller.today()).length;
 		if (n > 0) new Notice(this.controller.t("notice.dueStartup", { n }));

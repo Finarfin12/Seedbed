@@ -2,6 +2,7 @@ import { ItemView, setIcon } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import type { Controller } from "../controller";
 import type { IdeaIndex } from "../adapter/ideaIndex";
+import { daysBetween } from "../domain/dates";
 import { nextStatus } from "../domain/stateMachine";
 import type { Idea, Settings, Status } from "../domain/types";
 import { STATUSES } from "../domain/types";
@@ -88,7 +89,25 @@ export class IncubatorView extends ItemView {
 		const dueSec = root.createDiv({ cls: "bengkel-section" });
 		dueSec.createEl("h5", { text: `${t("view.dueToday")} (${due.length})` });
 		if (due.length === 0) dueSec.createEl("p", { cls: "bengkel-empty", text: t("view.nothingDue") });
-		else this.list(dueSec, due);
+		else this.list(dueSec, due, true);
+
+		const stuck = this.index.stuck(today, this.getSettings().digest.stuckDays);
+		if (stuck.length > 0) {
+			const sec = root.createDiv({ cls: "bengkel-section bengkel-stuck" });
+			sec.createEl("h5", { text: `${t("view.stuck")} (${stuck.length})` });
+			const ul = sec.createEl("ul", { cls: "bengkel-list" });
+			for (const idea of stuck) {
+				const li = ul.createEl("li", { cls: `bengkel-item status-${idea.status}` });
+				const top = li.createDiv({ cls: "bengkel-item-top" });
+				const link = top.createEl("a", { text: idea.title, cls: "bengkel-title", attr: { href: "#" } });
+				link.addEventListener("click", (e) => {
+					e.preventDefault();
+					void this.controller.openPath(idea.path);
+				});
+				top.createSpan({ cls: "bengkel-tag", text: t(`tipe.${idea.tipe}`) });
+				li.createDiv({ cls: "bengkel-meta", text: t("view.stuckDays", { n: daysBetween(idea.tersentuh as string, today) }) });
+			}
+		}
 
 		for (const status of STATUSES) {
 			const group = ideas
@@ -118,12 +137,12 @@ export class IncubatorView extends ItemView {
 		}
 	}
 
-	private list(parent: HTMLElement, ideas: Idea[]): void {
+	private list(parent: HTMLElement, ideas: Idea[], due = false): void {
 		const ul = parent.createEl("ul", { cls: "bengkel-list" });
-		for (const idea of ideas) this.item(ul, idea);
+		for (const idea of ideas) this.item(ul, idea, due);
 	}
 
-	private item(ul: HTMLElement, idea: Idea): void {
+	private item(ul: HTMLElement, idea: Idea, due = false): void {
 		const t = this.controller.t;
 		const li = ul.createEl("li", { cls: `bengkel-item status-${idea.status}` });
 		const top = li.createDiv({ cls: "bengkel-item-top" });
@@ -154,7 +173,11 @@ export class IncubatorView extends ItemView {
 		if (idea.status === "dibuang") {
 			act(t("btn.restore"), "undo-2", () => this.controller.transitionTo(path, "benih"));
 		} else {
+			if (due && this.controller.hasRecall(path)) act(t("btn.recall"), "brain", () => this.controller.recall(path));
 			if (nextStatus(idea.status)) act(t("btn.promote"), "arrow-up", () => this.controller.promote(path), "mod-cta");
+			if (idea.status === "matang" && this.getSettings().premortem.enabled && !idea.gerbangLain?.includes("premortem")) {
+				act(t("btn.premortem"), "skull", () => this.controller.premortem(path));
+			}
 			if (idea.status === "matang") act(t("btn.reopen"), "rotate-ccw", () => this.controller.transitionTo(path, "tumbuh"));
 			act(t("btn.snooze", { n: this.getSettings().snoozeDays }), "clock", () => this.controller.snooze(path));
 			act(t("btn.discard"), "trash-2", () => this.controller.transitionTo(path, "dibuang"));

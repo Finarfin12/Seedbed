@@ -139,6 +139,83 @@ export class BengkelSettingTab extends PluginSettingTab {
 		number(containerEl, t("set.socraticMinChars"), "", () => s.socraticMinChars, (v) => (s.socraticMinChars = v), 0, 1000);
 		number(containerEl, t("set.devilMinAnswered"), "", () => s.devilMinAnswered, (v) => (s.devilMinAnswered = v), 1, 5);
 
+		new Setting(containerEl).setName(t("set.premortem")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.premortem.enabled"))
+			.setDesc(t("set.premortem.enabled.desc"))
+			.addToggle((c) =>
+				c.setValue(s.premortem.enabled).onChange(async (v) => {
+					s.premortem.enabled = v;
+					await save();
+					this.plugin.refreshViews();
+				}),
+			);
+		number(containerEl, t("set.premortem.minAnswered"), "", () => s.premortem.minAnswered, (v) => (s.premortem.minAnswered = v), 1, 5);
+		number(containerEl, t("set.premortem.minChars"), "", () => s.premortem.minChars, (v) => (s.premortem.minChars = v), 0, 1000);
+
+		new Setting(containerEl).setName(t("set.retrieval")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.retrieval.enabled"))
+			.setDesc(t("set.retrieval.enabled.desc"))
+			.addToggle((c) =>
+				c.setValue(s.retrieval.enabled).onChange(async (v) => {
+					s.retrieval.enabled = v;
+					await save();
+					this.plugin.refreshViews();
+				}),
+			);
+		new Setting(containerEl)
+			.setName(t("set.retrieval.adjust"))
+			.setDesc(t("set.retrieval.adjust.desc"))
+			.addToggle((c) =>
+				c.setValue(s.retrieval.adjustInterval).onChange(async (v) => {
+					s.retrieval.adjustInterval = v;
+					await save();
+				}),
+			);
+
+		new Setting(containerEl).setName(t("set.connect")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.connect.enabled"))
+			.setDesc(t("set.connect.enabled.desc"))
+			.addToggle((c) =>
+				c.setValue(s.connect.enabled).onChange(async (v) => {
+					s.connect.enabled = v;
+					await save();
+				}),
+			);
+
+		new Setting(containerEl).setName(t("set.digest")).setHeading();
+		new Setting(containerEl)
+			.setName(t("set.digest.folder"))
+			.setDesc(t("set.digest.folder.desc"))
+			.addText((c) => {
+				c.setValue(s.digest.folder);
+				c.inputEl.addEventListener("change", () => {
+					s.digest.folder = cleanFolder(c.inputEl.value) || "Digests";
+					c.setValue(s.digest.folder);
+					void save();
+				});
+			});
+		number(containerEl, t("set.digest.stuckDays"), t("set.digest.stuckDays.desc"), () => s.digest.stuckDays, (v) => (s.digest.stuckDays = v), 1, 3650);
+
+		new Setting(containerEl)
+			.setName(t("set.digest.reminder"))
+			.setDesc(t("set.digest.reminder.desc"))
+			.addToggle((c) =>
+				c.setValue(s.digest.reminder.enabled).onChange(async (v) => {
+					s.digest.reminder.enabled = v;
+					await save();
+				}),
+			)
+			.addDropdown((d) => {
+				for (let i = 0; i < 7; i++) d.addOption(String(i), t(("day." + i) as Key));
+				d.setValue(String(s.digest.reminder.day)).onChange(async (v) => {
+					s.digest.reminder.day = Number(v);
+					await save();
+				});
+			});
+
 		new Setting(containerEl).setName(t("set.feynman")).setHeading();
 		new Setting(containerEl)
 			.setName(t("set.feynman.jargon"))

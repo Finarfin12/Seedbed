@@ -49,10 +49,14 @@ Seed --(Socratic / Feynman)--> Growing --(Devil's Advocate)--> Mature
 | Check explanation (Feynman) | Find unexplained terms and overly long sentences |
 | Create Seedbed templates | Add the "Seedbed Idea" and "Seedbed Concept" Obsidian templates to your templates folder (never overwrites) |
 | Migrate Seedbed properties | Convert notes that still use an old property format (0.6 `bengkel-*` or the `seedbed-*` dev names) to the plain names (asks first, shows how many notes) |
-| Open Incubator | Side panel: due items first, then grouped by stage |
+| Pre-mortem this idea | Optional gate for a mature idea: "it failed a year from now, why?" (5 questions). Adds `premortem` to `gates`; the status never changes |
+| Recall this idea | Practice remembering: your earlier answers are hidden until you answer again, then shown side by side. Your own rating (Remembered / Partly / Forgot) moves the review date |
+| Connect this idea | Asks how this idea relates to your other Seedbed ideas (up to 10, matched by words). A `[[link]]` is added only when you press its button |
+| Create weekly digest | Writes `Seedbed digest YYYY-MM-DD.md` (due, stuck, counts, this week, one suggestion). Never overwrites |
+| Open Incubator | Side panel: due items first, then **Stuck**, then grouped by stage |
 | Open Feynman gaps panel | List of gaps found in the current explanation |
 
-The Incubator panel has **Promote / Snooze / Discard / Open** buttons, plus **Reopen / Restore**. On desktop a "💡 N due" badge appears in the status bar; on mobile the badge is in the panel.
+The Incubator panel has **Promote / Snooze / Discard / Open** buttons, plus **Reopen / Restore**, **Recall** (due notes that have earlier answers) and **Pre-mortem** (mature notes). The **Stuck** section lists notes whose file has not been edited for more than 30 days (a setting); any edit, including sync, takes a note out of it. On desktop a "💡 N due" badge appears in the status bar; on mobile the badge is in the panel.
 
 ## Data format
 
@@ -64,7 +68,7 @@ type: idea            # idea | concept
 status: growing       # seed | growing | mature | discarded
 created: 2026-11-11   # YYYY-MM-DD
 review: 2026-11-25    # YYYY-MM-DD, next review date
-gates:                # gates already passed (socratic | devil | feynman)
+gates:                # gates passed (socratic | devil | feynman | premortem); unknown values are kept
   - socratic
 source: https://example.com/article   # only for captures from the browser
 origin: capture                         # only for captures from the browser
@@ -85,6 +89,36 @@ Your thinking trail is stored as callouts that are only appended to the end of t
 ```
 
 The plugin **never deletes note content**. It only appends callouts and edits its own properties (the names in Settings).
+
+### Format v2 (0.8.0)
+
+Shared with the [Seedbed agent skill](https://github.com/Finarfin12/seedbed-skill) (`docs/format.md`).
+
+- `gates` may hold values other than `socratic`, `devil`, `feynman` (for example `premortem`). Readers must **keep** unknown values when they rewrite `gates`. The plugin does (0.7.0 dropped them).
+- New callouts, always appended at the end:
+
+```markdown
+> [!premortem]- Pre-mortem — 2026-11-13
+> **Cause** · Bank
+> Imagine it is a year from now and this idea failed. What is the most likely cause?
+> Answer: <your words>
+
+> [!retrieval]- Retrieval — 2026-11-13
+> **Recall** · Bank · forgot
+> <the earlier question>
+> Answer: <your new answer>
+> Earlier answer: <your earlier answer>
+
+> [!connect]- Connect — 2026-11-13
+> **Kafe baca** · Bank
+> Does this idea support, contradict, or relate to "Kafe baca"? Explain in your own words.
+> Answer: <your words>
+```
+
+- The optional word after the source on the label line of `[!retrieval]` is your own rating: `remembered`, `partly` or `forgot` (always English, so tools can read it).
+- After a click on "Add link", one line `Related: [[Title]]` is appended at the end of the note (never duplicated).
+- A line of content that starts with `[!` is written as `\[!` so it cannot become a new callout.
+- A digest note (`Seedbed digest YYYY-MM-DD.md`) has no `type`, so it is not a Seedbed note.
 
 ### Templates
 
@@ -152,6 +186,8 @@ Nothing breaks when you upgrade:
 2. A term that **appears** in your explanation counts as **explained** when it matches a definition pattern: `term is / means / refers to` (Indonesian: `adalah / yaitu / ialah / artinya / berarti / merupakan`).
 3. Code blocks, inline code, frontmatter, HTML comments, link targets, and the plugin's own callouts are skipped.
 4. Sentences longer than 25 words are flagged as **suggestions** (they don't block the gate).
+
+Since 0.8.0 a definition is also flagged when it is **circular** ("entropy is entropy") or **empty** ("entropy is an important thing"): pattern and filler-word checks only, never a judgement of whether the explanation is true. Text in `[!premortem]`, `[!retrieval]`, `[!connect]`, `[!trigger]` and `[!quote]` callouts is not analysed.
 
 This is pattern matching, not understanding. Expect false positives; use **Ignore** (per note) or tune the jargon list. The check reads the note as **saved on disk**.
 

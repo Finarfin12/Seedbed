@@ -49,9 +49,13 @@ Benih --(Socratic / Feynman)--> Tumbuh --(Devil's Advocate)--> Matang
 | Periksa penjelasan (Feynman) | Cari istilah yang belum dijelaskan dan kalimat yang terlalu panjang |
 | Buat templat Seedbed | Tambahkan templat Obsidian "Seedbed Idea" dan "Seedbed Concept" ke folder templat (tidak pernah menimpa) |
 | Migrasikan properti Seedbed | Ubah catatan berformat properti lama (0.6 `bengkel-*` atau nama dev `seedbed-*`) ke nama polos (bertanya dulu, menyebut jumlah catatan) |
-| Buka Inkubator | Panel samping: jatuh tempo, lalu per status |
+| Pre-mortem ide ini | Gerbang opsional untuk ide matang: "setahun lagi ide ini gagal, kenapa?" (5 pertanyaan). Menambah `premortem` ke `gates`; status tidak berubah |
+| Ingat ulang ide ini (Recall) | Latihan mengingat: jawaban lamamu disembunyikan sampai kamu menjawab lagi, lalu tampil berdampingan. Penilaian dirimu (Ingat / Sebagian / Lupa) menggeser tanggal tinjau |
+| Hubungkan ide ini (Connect) | Bertanya bagaimana ide ini berkaitan dengan ide Seedbed lainnya (maks. 10, dicocokkan lewat kata). `[[Tautan]]` hanya ditambah bila kamu menekan tombolnya |
+| Buat digest mingguan | Menulis `Seedbed digest YYYY-MM-DD.md` (jatuh tempo, macet, jumlah, minggu ini, satu saran). Tidak pernah menimpa |
+| Buka Inkubator | Panel samping: jatuh tempo, lalu **Macet**, lalu per status |
 
-Panel Inkubator punya tombol **Naikkan / Tunda / Buang / Buka**, plus **Buka ulang / Pulihkan**. Di desktop ada penanda "💡 N jatuh tempo" di status bar; di mobile penandanya ada di panel.
+Panel Inkubator punya tombol **Naikkan / Tunda / Buang / Buka**, plus **Buka ulang / Pulihkan**, **Recall** (catatan jatuh tempo yang punya jawaban lama) dan **Pre-mortem** (catatan matang). Bagian **Macet** memuat catatan yang berkasnya tidak diedit lebih dari 30 hari (bisa diatur); edit apa pun, termasuk sinkronisasi, mengeluarkannya dari sana. Di desktop ada penanda "💡 N jatuh tempo" di status bar; di mobile penandanya ada di panel.
 
 ## Format data
 
@@ -63,7 +67,7 @@ type: idea            # idea | concept
 status: growing       # seed | growing | mature | discarded
 created: 2026-11-11   # YYYY-MM-DD
 review: 2026-11-25    # YYYY-MM-DD, jatuh tempo berikutnya
-gates:                # gerbang yang sudah dilewati (socratic | devil | feynman)
+gates:                # gerbang yang lolos (socratic | devil | feynman | premortem); nilai tak dikenal dipertahankan
   - socratic
 source: https://contoh.com/artikel   # hanya untuk tangkapan dari browser
 origin: capture                       # hanya untuk tangkapan dari browser
@@ -84,6 +88,36 @@ Jejak berpikir disimpan sebagai callout yang hanya ditambahkan di akhir catatan.
 ```
 
 Plugin **tidak pernah menghapus isi catatan**. Ia hanya menambah callout dan mengubah properti miliknya sendiri (nama di Pengaturan).
+
+### Format v2 (0.8.0)
+
+Dipakai bersama [skill agent Seedbed](https://github.com/Finarfin12/seedbed-skill) (`docs/format.md`).
+
+- `gates` boleh berisi nilai selain `socratic`, `devil`, `feynman` (misalnya `premortem`). Pembaca wajib **mempertahankan** nilai tak dikenal saat menulis ulang `gates`. Plugin melakukannya (0.7.0 menghapusnya).
+- Callout baru, selalu ditambahkan di akhir catatan:
+
+```markdown
+> [!premortem]- Pre-mortem — 2026-11-13
+> **Penyebab** · Bank
+> Bayangkan setahun lagi ide ini gagal. Apa penyebab yang paling mungkin?
+> Jawaban: <katamu>
+
+> [!retrieval]- Retrieval — 2026-11-13
+> **Ingat ulang** · Bank · forgot
+> <pertanyaan lama>
+> Jawaban: <jawaban barumu>
+> Jawaban lama: <jawaban lamamu>
+
+> [!connect]- Connect — 2026-11-13
+> **Kafe baca** · Bank
+> Apakah ide ini mendukung, bertentangan dengan, atau berkaitan dengan "Kafe baca"? Jelaskan dengan kata-katamu.
+> Jawaban: <katamu>
+```
+
+- Kata opsional setelah label sumber di baris label `[!retrieval]` adalah penilaian dirimu: `remembered`, `partly` atau `forgot` (selalu Inggris agar terbaca mesin). Baris jawaban memakai `Answer:`/`Earlier answer:` (EN) atau `Jawaban:`/`Jawaban lama:` (ID).
+- Setelah klik "Tambah tautan", satu baris `Related: [[Judul]]` ditambahkan di akhir catatan (tidak pernah ganda).
+- Baris isi yang diawali `[!` ditulis `\[!` supaya tidak menjadi callout baru.
+- Catatan digest (`Seedbed digest YYYY-MM-DD.md`) tidak punya `type`, jadi bukan catatan Seedbed.
 
 ### Templat
 
@@ -151,6 +185,8 @@ Tidak ada yang rusak saat upgrade:
 2. Istilah yang **muncul** di penjelasanmu dianggap **sudah dijelaskan** jika ada pola `istilah adalah / yaitu / ialah / artinya / berarti / merupakan` (EN: `is / means / refers to`).
 3. Blok kode, kode inline, frontmatter, komentar HTML, tujuan tautan, dan callout plugin tidak dianalisis.
 4. Kalimat lebih dari 25 kata ditandai sebagai **saran** (tidak menghalangi gerbang).
+
+Sejak 0.8.0 definisi juga ditandai bila **melingkar** ("entropi adalah entropi") atau **kosong** ("entropi adalah hal penting"): hanya pemeriksaan pola dan kata pengisi, tidak pernah menilai benar/salahnya isi. Isi callout `[!premortem]`, `[!retrieval]`, `[!connect]`, `[!trigger]` dan `[!quote]` tidak dianalisis.
 
 Ini pencocokan pola, bukan pemahaman. False positive pasti ada; pakai tombol **Abaikan** (per catatan) atau atur daftar jargon. Pemeriksaan membaca isi catatan yang **tersimpan di disk**.
 

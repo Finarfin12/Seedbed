@@ -17,10 +17,12 @@ export interface Gap {
 	words: number;
 	snippet: string;
 	ignored: boolean;
+	/** FY-1: definisi ada tetapi lemah. "circular" = dijelaskan dengan dirinya sendiri; "empty" = hanya kata pengisi. */
+	weak?: "circular" | "empty";
 }
 
 /** Jenis callout milik plugin yang tidak dianalisis (jawaban sesi & petunjuk). */
-const SKIP_CALLOUTS = ["socratic", "devil", "feynman-hint"];
+const SKIP_CALLOUTS = ["socratic", "devil", "feynman-hint", "premortem", "retrieval", "connect", "trigger", "pemicu", "quote"];
 
 const DEFINITION_VERBS = "adalah|yaitu|ialah|artinya|berarti|merupakan|is|means|refers\\s+to";
 
@@ -77,6 +79,27 @@ export function maskText(text: string): string {
 	}
 	// Komentar HTML bisa lintas baris.
 	return out.join("\n").replace(/<!--[\s\S]*?-->/g, (m) => blank(m));
+}
+
+/** Kata pengisi (EN/ID) yang tidak menjelaskan apa pun. */
+const FILLER = new Set(
+	"a an the of to in on for with and or but that which who thing things stuff something important very really quite so just also can may will is are was be been being kind sort lot lots many much some any one hal penting sesuatu yang sangat sekali dan atau tetapi untuk dengan dari ke di pada itu ini suatu banyak beberapa dalam bisa dapat akan adalah yaitu ialah merupakan juga saja hanya cukup".split(" "),
+);
+
+/** FY-1: periksa klausa setelah "X is/adalah ...". Hanya pola dan kata pengisi; tidak menilai benar/salah. */
+export function weakDefinition(term: string, clause: string): "circular" | "empty" | undefined {
+	const head = clause.split(/[.!?\n]/)[0] ?? "";
+	const words = [...head.toLowerCase().matchAll(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu)].map((m) => m[0]);
+	if (words.length === 0) return "empty";
+	const termWords = term.toLowerCase().split(/\s+/).filter(Boolean);
+	const stem = (w: string) => w.replace(/(ing|ed|es|s|nya|kan|an)$/u, "");
+	const termStems = new Set(termWords.map(stem));
+	const content = words.filter((w) => !FILLER.has(w));
+	// Melingkar hanya jika SELURUH istilah (semua katanya) muncul lagi di definisinya.
+	const contentStems = new Set(content.map(stem));
+	if ([...termStems].every((w) => w.length >= 3 && contentStems.has(w))) return "circular";
+	if (content.length === 0) return "empty";
+	return undefined;
 }
 
 function escapeRegex(s: string): string {
@@ -162,7 +185,12 @@ export function analyze(
 			`(?<![\\p{L}\\p{N}_])${core}(?:\\]\\]|\\*\\*|__|\\*|_|["'”])*,?\\s+(?:${DEFINITION_VERBS})(?![\\p{L}\\p{N}_])`,
 			"iu",
 		);
-		if (defined.test(masked)) continue;
+		const dm = defined.exec(masked);
+		let weak: "circular" | "empty" | undefined;
+		if (dm) {
+			weak = weakDefinition(term, masked.slice(dm.index + dm[0].length, dm.index + dm[0].length + 160));
+			if (!weak) continue;
+		}
 		const first = matches[0] as RegExpMatchArray;
 		const offset = first.index ?? 0;
 		gaps.push({
@@ -176,6 +204,7 @@ export function analyze(
 			words: 0,
 			snippet: snippetAround(text, offset),
 			ignored: ignoredSet.has(term.toLowerCase()),
+			...(weak ? { weak } : {}),
 		});
 	}
 

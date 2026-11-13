@@ -21,6 +21,10 @@ export const DEFAULT_SETTINGS: Settings = {
 	capture: { confirm: true, openAfter: false, maxChars: 2000 },
 	properties: { ...DEFAULT_NAMES },
 	templates: { folder: "", offered: false },
+	premortem: { enabled: true, minAnswered: 3, minChars: 20 },
+	retrieval: { enabled: true, adjustInterval: true },
+	digest: { folder: "Digests", stuckDays: 30, reminder: { enabled: false, day: 1 }, lastReminded: "" },
+	connect: { enabled: true },
 };
 
 function num(v: unknown, fallback: number, min: number, max: number): number {
@@ -97,6 +101,9 @@ export function mergeSettings(loaded: unknown, defaults: Settings = DEFAULT_SETT
 	const fy = isRecord(loaded.feynman) ? loaded.feynman : {};
 	const cp = isRecord(loaded.capture) ? loaded.capture : {};
 	const tp = isRecord(loaded.templates) ? loaded.templates : {};
+	const pm = isRecord(loaded.premortem) ? loaded.premortem : {};
+	const rt = isRecord(loaded.retrieval) ? loaded.retrieval : {};
+	const dg = isRecord(loaded.digest) ? loaded.digest : {};
 	const ignoredRaw = isRecord(fy.ignored) ? fy.ignored : {};
 	const ignored: Record<string, string[]> = {};
 	for (const [path, list] of Object.entries(ignoredRaw)) {
@@ -136,6 +143,22 @@ export function mergeSettings(loaded: unknown, defaults: Settings = DEFAULT_SETT
 			maxChars: num(cp.maxChars, d.capture.maxChars, 200, 20000),
 		},
 		properties: sanitizeNames(loaded.properties),
+		premortem: {
+			enabled: bool(pm.enabled, d.premortem.enabled),
+			minAnswered: num(pm.minAnswered, d.premortem.minAnswered, 1, 5),
+			minChars: num(pm.minChars, d.premortem.minChars, 0, 1000),
+		},
+		retrieval: { enabled: bool(rt.enabled, d.retrieval.enabled), adjustInterval: bool(rt.adjustInterval, d.retrieval.adjustInterval) },
+		digest: {
+			folder: cleanFolder(dg.folder) || d.digest.folder,
+			stuckDays: num(dg.stuckDays, d.digest.stuckDays, 1, 3650),
+			reminder: {
+				enabled: bool(isRecord(dg.reminder) ? dg.reminder.enabled : undefined, d.digest.reminder.enabled),
+				day: num(isRecord(dg.reminder) ? dg.reminder.day : undefined, d.digest.reminder.day, 0, 6),
+			},
+			lastReminded: typeof dg.lastReminded === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dg.lastReminded) ? dg.lastReminded : "",
+		},
+		connect: { enabled: bool(isRecord(loaded.connect) ? loaded.connect.enabled : undefined, d.connect.enabled) },
 		templates: {
 			folder: cleanFolder(tp.folder),
 			offered: bool(tp.offered, d.templates.offered),

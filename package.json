@@ -1,6 +1,6 @@
 {
 	"name": "seedbed",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"description": "Grow ideas from seed to mature through thinking gates (Socratic, Devil's Advocate, Feynman).",
 	"main": "main.js",
 	"type": "module",

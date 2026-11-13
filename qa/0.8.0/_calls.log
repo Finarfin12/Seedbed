@@ -1,0 +1,8 @@
+# Panggilan Claude (CLI) selama uji 0.8.0. Anggaran maksimal 10.
+2026-11-13T01:09:19.218Z T-AI5 (model salah, gagal sesuai desain) cumulative cli attempts since plugin load=1 
+2026-11-13T01:09:24.076Z T-AI1 pre-mortem cumulative cli attempts since plugin load=2 
+2026-11-13T01:09:31.083Z T-AI2 connect cumulative cli attempts since plugin load=3 
+2026-11-13T01:09:35.428Z T-AI3 digest cumulative cli attempts since plugin load=4 
+2026-11-13T01:09:45.554Z T-AI4 feynman follow-up x2 cumulative cli attempts since plugin load=6 
+2026-11-13T01:09:45.560Z TOTAL (counter resets on plugin reload; see per-scenario lines) cumulative cli attempts since plugin load=6 
+2026-11-13T01:11:19.648Z T-AI2 (ulang setelah STOP words) connect: 1 panggilan cli

@@ -31,7 +31,7 @@ export const SYSTEM_RULES = [
 
 /** Hindari data pengguna menutup tag pembungkus lebih awal. */
 export function neutralize(text: string): string {
-	return text.replace(/<\/?\s*(note|answers|previous_answers|system|assistant|user)\b[^>]*>/gi, "[tag]");
+	return text.replace(/<\/?\s*(note|answers|previous_answers|candidates|system|assistant|user)\b[^>]*>/gi, "[tag]");
 }
 
 /** Potong ke batas konteks (F-52). Menandai bila terpotong. */

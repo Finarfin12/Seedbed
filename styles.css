@@ -237,3 +237,22 @@
 	max-height: 14em;
 	overflow-y: auto;
 }
+
+/* 0.8.0 Retrieval: jawaban sekarang vs sebelumnya berdampingan */
+.bengkel-recall-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin: 8px 0;
+}
+.bengkel-recall-col {
+	padding: 8px 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	white-space: pre-wrap;
+}
+@media (max-width: 600px) {
+	.bengkel-recall-grid {
+		grid-template-columns: 1fr;
+	}
+}
