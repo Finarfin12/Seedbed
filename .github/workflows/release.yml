@@ -19,16 +19,18 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - name: Cek tag = versi manifest
-        run: |
-          v=$(node -p "require('./manifest.json').version")
-          [ "$v" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} != manifest ${v}"; exit 1; }
+      # Tag = versi manifest, dan manifest/package/package-lock/versions.json/CHANGELOG sepakat. Catatan rilis = bagian CHANGELOG versi ini.
+      - name: Cek berkas rilis
+        run: node scripts/check-release.mjs "${GITHUB_REF_NAME}" --notes release-notes.md
       - run: npm test
       - run: npm run build
+      - name: Cek aset rilis
+        run: |
+          for f in main.js manifest.json styles.css; do [ -s "$f" ] || { echo "Missing release asset $f"; exit 1; }; done
       # Aset rilis HANYA berkas plugin di root (main.js, manifest.json, styles.css); extension/ tidak ikut.
       - name: Buat rilis (draft)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "${GITHUB_REF_NAME}" main.js manifest.json styles.css \
-            --title "${GITHUB_REF_NAME}" --notes-file CHANGELOG.md --draft
+            --title "${GITHUB_REF_NAME}" --notes-file release-notes.md --draft
