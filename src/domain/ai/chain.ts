@@ -20,7 +20,7 @@ export function redact(text: string, secrets: string[]): string {
 	for (const s of secrets) {
 		if (s) out = out.split(s).join("[redacted]");
 	}
-	return out.replace(/(Bearer\s+)[A-Za-z0-9._\-]{8,}/g, "$1[redacted]").replace(/\b(sk|key|token)[-_][A-Za-z0-9_\-]{12,}/gi, "[redacted]");
+	return out.replace(/(Bearer\s+)[A-Za-z0-9._-]{8,}/g, "$1[redacted]").replace(/\b(sk|key|token)[-_][A-Za-z0-9_-]{12,}/gi, "[redacted]");
 }
 
 /**

@@ -377,5 +377,5 @@ export function connectQuestion(lang: Language, title: string): string {
 
 /** Baris tautan yang ditambahkan di akhir catatan hanya setelah pengguna mengklik. Judul dibersihkan dari karakter tautan. */
 export function relatedLine(title: string): string {
-	return `Related: [[${title.replace(/[\[\]|#^\\\n\r]/g, " ").replace(/\s+/g, " ").trim()}]]`;
+	return `Related: [[${title.replace(/[[\]|#^\\\n\r]/g, " ").replace(/\s+/g, " ").trim()}]]`;
 }

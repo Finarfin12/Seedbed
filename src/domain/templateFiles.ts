@@ -37,7 +37,7 @@ export function cleanFolder(raw: unknown): string {
 		.split("/")
 		.map((p) => p.trim())
 		.filter((p) => p.length > 0 && p !== ".");
-	if (parts.some((p) => p === ".." || /[\u0000-\u001f<>:"|?*]/.test(p))) return "";
+	if (parts.some((p) => p === ".." || /[<>:"|?*]/.test(p) || Array.from(p).some(ch => ch.charCodeAt(0) <= 31))) return "";
 	return parts.join("/");
 }
 

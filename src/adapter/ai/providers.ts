@@ -91,7 +91,8 @@ export class LocalHttpProvider implements AiProvider {
 		let response: Awaited<ReturnType<HttpClient["get"]>> | null;
 		try {
 			response = await Promise.race([this.http.get(url), timeout]);
-		} catch {
+		} catch (e) {
+			void e;
 			// Original transport errors may contain credentials; intentionally emit a sanitized error without the original cause.
 			// eslint-disable-next-line preserve-caught-error -- Original transport errors may contain credentials; intentionally emit a sanitized error without the original cause.
 			throw new Error(`${kind} not reachable`);
