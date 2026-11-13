@@ -81,9 +81,9 @@ export class LocalHttpProvider implements AiProvider {
 	private async probe(base: string): Promise<void> {
 		const kind = this.cfg.kind;
 		const url = joinUrl(base, kind === "ollama" ? "/api/tags" : "/v1/models");
-		let timer: ReturnType<typeof setTimeout> | undefined;
+		let timer: number | undefined;
 		const timeout = new Promise<never>((_, reject) => {
-			timer = setTimeout(() => reject(new Error(`${kind} not reachable (no answer in ${this.probeMs}ms)`)), this.probeMs);
+			timer = window.setTimeout(() => reject(new Error(`${kind} not reachable (no answer in ${this.probeMs}ms)`)), this.probeMs);
 		});
 		try {
 			const r = await Promise.race([this.http.get(url), timeout]);
@@ -92,7 +92,7 @@ export class LocalHttpProvider implements AiProvider {
 			const msg = e instanceof Error ? e.message : String(e);
 			throw new Error(msg.startsWith(kind) ? msg : `${kind} not reachable`);
 		} finally {
-			if (timer) clearTimeout(timer);
+			if (timer) window.clearTimeout(timer);
 		}
 	}
 

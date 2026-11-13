@@ -29,14 +29,14 @@ export interface Detection {
 
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 	return new Promise<T>((resolve, reject) => {
-		const t = setTimeout(() => reject(new Error(`${label}: timeout ${ms}ms`)), ms);
+		const t = window.setTimeout(() => reject(new Error(`${label}: timeout ${ms}ms`)), ms);
 		p.then(
 			(v) => {
-				clearTimeout(t);
+				window.clearTimeout(t);
 				resolve(v);
 			},
 			(e) => {
-				clearTimeout(t);
+				window.clearTimeout(t);
 				reject(e);
 			},
 		);

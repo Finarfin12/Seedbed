@@ -135,7 +135,7 @@ export async function makeSandboxDir(): Promise<{ dir: string; cleanup: () => Pr
 					/* terkunci; coba lagi */
 				}
 				if (!fs.existsSync(dir)) return;
-				await new Promise((r) => setTimeout(r, 100));
+				await new Promise((r) => window.setTimeout(r, 100));
 			}
 		},
 	};

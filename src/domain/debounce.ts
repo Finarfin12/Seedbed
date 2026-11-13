@@ -11,12 +11,12 @@ export interface Debounced {
 	pending(): boolean;
 }
 
-const defaultTimers: TimerApi<ReturnType<typeof setTimeout>> = {
-	set: (fn, ms) => setTimeout(fn, ms),
-	clear: (h) => clearTimeout(h),
+const defaultTimers: TimerApi<number> = {
+	set: (fn, ms) => window.setTimeout(fn, ms),
+	clear: (h) => window.clearTimeout(h),
 };
 
-export function debounce<H = ReturnType<typeof setTimeout>>(fn: () => void, ms: number, timers?: TimerApi<H>): Debounced {
+export function debounce<H = number>(fn: () => void, ms: number, timers?: TimerApi<H>): Debounced {
 	const api = (timers ?? defaultTimers) as unknown as TimerApi<H>;
 	let handle: H | null = null;
 	const d = (() => {
