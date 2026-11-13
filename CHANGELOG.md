@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.2
+- Interop only: the Feynman analyzer skips the text of `[!evidence]` callouts, the trail written by the agent skill's new evidence mode (skill 0.4.0), so quotes and answers in them neither create gaps nor count as an explanation. No new command, setting, UI or network use; evidence mode is a skill feature, not a plugin feature.
+
 ## 0.8.1
 - Fixes for the Obsidian community plugin review: views are no longer detached in `onunload` (they keep the place you moved them to), `minAppVersion` raised to 1.8.7 because the plugin uses `getLanguage()`, and the `eslint-disable` comments now say why they are needed.
 - `versions.json` corrected: 0.5.0, 0.7.0 and 0.8.0 also need Obsidian 1.8.7 (they call `getLanguage()`); entries for versions that were never released (0.4.0, 0.6.0) removed.
