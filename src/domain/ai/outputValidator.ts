@@ -17,7 +17,7 @@ const EXPLANATION_PATTERNS: RegExp[] = [
 	/\bhere\s+is\s+(the|an)\s+(explanation|answer)\b/i,
 ];
 
-const FORBIDDEN_CONTENT: RegExp[] = [/```/, /`/, /https?:\/\//i, /<\s*\/?\s*[a-z][^>]*>/i, /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/];
+const FORBIDDEN_CONTENT: RegExp[] = [/```/, /`/, /https?:\/\//i, /<\s*\/?\s*[a-z][^>]*>/i];
 
 /** Pecah menjadi kalimat berdasarkan . ! ? (tanda baca dipertahankan). */
 export function splitSentences(text: string): string[] {
@@ -34,6 +34,7 @@ function basicChecks(text: string): boolean {
 	if (text.length < 8 || text.length > MAX_LEN) return false;
 	if (/\n/.test(text.trim())) return false;
 	if (FORBIDDEN_CONTENT.some((r) => r.test(text))) return false;
+	if (Array.from(text).some(ch => { const c = ch.charCodeAt(0); return c <= 8 || c === 11 || c === 12 || (c >= 14 && c <= 31); })) return false;
 	if (EXPLANATION_PATTERNS.some((r) => r.test(text))) return false;
 	if (/^(jawaban|answer|hint|petunjuk)\s*:/i.test(text.trim())) return false;
 	return true;

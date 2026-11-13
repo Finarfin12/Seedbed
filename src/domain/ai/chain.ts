@@ -18,9 +18,9 @@ export interface ChainResult<T> {
 export function redact(text: string, secrets: string[]): string {
 	let out = text;
 	for (const s of secrets) {
-		if (s && s.length >= 4) out = out.split(s).join("[redacted]");
+		if (s) out = out.split(s).join("[redacted]");
 	}
-	return out.replace(/(Bearer\s+)[A-Za-z0-9._\-]{8,}/g, "$1[redacted]").replace(/\b(sk|key|token)[-_][A-Za-z0-9_\-]{12,}/gi, "[redacted]");
+	return out.replace(/(Bearer\s+)[A-Za-z0-9._-]{8,}/g, "$1[redacted]").replace(/\b(sk|key|token)[-_][A-Za-z0-9_-]{12,}/gi, "[redacted]");
 }
 
 /**
@@ -52,10 +52,10 @@ export class ProviderChain {
 		for (const p of this.providers) {
 			const started = Date.now();
 			const ac = new AbortController();
-			let timer: ReturnType<typeof setTimeout> | undefined;
+			let timer: number | undefined;
 			try {
 				const timeout = new Promise<never>((_, reject) => {
-					timer = setTimeout(() => {
+					timer = window.setTimeout(() => {
 						// reject DULU supaya pesan "timeout" yang tercatat, baru batalkan penyedia.
 						reject(new Error(`timeout ${Math.round(this.timeoutMs / 1000)}s`));
 						ac.abort();
@@ -74,7 +74,7 @@ export class ProviderChain {
 				const msg = e instanceof Error ? e.message : String(e);
 				record({ provider: p.id, ok: false, error: redact(msg, this.secrets).slice(0, 300), ms: Date.now() - started });
 			} finally {
-				if (timer) clearTimeout(timer);
+				if (timer) window.clearTimeout(timer);
 			}
 		}
 		return { value: null, source: null, attempts };

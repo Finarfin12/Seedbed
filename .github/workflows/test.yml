@@ -1,6 +1,6 @@
 name: Test
 
-# Tes dan build untuk plugin (root) dan ekstensi (extension/). Tidak membuat rilis dan tidak dipicu oleh tag.
+# Test and build the plugin; no release is created.
 on:
   push:
     branches: ["**"]
@@ -21,23 +21,7 @@ jobs:
       - run: npm ci
       # Versi di manifest.json, package.json, package-lock.json, versions.json dan CHANGELOG harus sama.
       - run: node scripts/check-release.mjs
+      - run: npm run lint
       - run: npm test
       - run: npm run build
 
-  extension:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: extension
-    steps:
-      - uses: actions/checkout@v4
-        # Tes paritas membaca ../src/domain/captureValidator.ts dari root repo (checkout penuh).
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: extension/package-lock.json
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-      - run: npm run check-bundle

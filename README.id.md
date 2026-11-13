@@ -8,7 +8,7 @@ Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik sta
 
 ![Panel Inkubator berisi ide jatuh tempo, tombol Recall dan Naikkan, serta bagian Macet](docs/screenshots/incubator.png)
 
-**Privasi dan jaringan.** Saat fitur AI **mati (bawaan)**, plugin ini tidak melakukan satu pun permintaan jaringan dan tidak menjalankan program apa pun. Semua data berupa frontmatter dan callout Markdown biasa di vault-mu, jadi tetap terbaca tanpa plugin. AI hanya aktif jika kamu menyalakannya dan menyetujui tiap penyedia (lihat [AI opsional](#ai-opsional)).
+**Privasi dan jaringan.** Saat fitur AI **mati (bawaan)**, plugin ini tidak melakukan satu pun permintaan jaringan dan tidak menjalankan program apa pun. Semua data berupa frontmatter dan callout Markdown biasa di vault-mu, jadi tetap terbaca tanpa plugin. AI hanya aktif jika kamu menyalakannya dan menyetujui tiap penyedia (lihat [AI opsional](#ai-opsional)). Plugin membaca daftar catatan vault untuk Inkubator, Connect dan digest, memilih catatan dengan `type: idea` atau `type: concept`.
 
 ## Daftar isi
 - [Konsep](#konsep)
@@ -18,7 +18,7 @@ Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik sta
 - [Mode Feynman](#mode-feynman)
 - [Bank pertanyaan kustom](#bank-pertanyaan-kustom)
 - [AI opsional](#ai-opsional)
-- [Seedbed Capture (ekstensi browser)](#seedbed-capture-ekstensi-browser), kodenya di [`extension/`](extension/README.id.md)
+- [Seedbed Capture (ekstensi browser)](#seedbed-capture-ekstensi-browser), kode di [seedbed-capture](https://github.com/Finarfin12/seedbed-capture)
 - [Bahasa](#bahasa)
 - [Instalasi](#instalasi)
 - [Pengembangan](#pengembangan)
@@ -327,7 +327,6 @@ Buka folder `test-vault/` sebagai vault di Obsidian (**Open folder as vault**), 
 
 Struktur repositori:
 - root repositori: plugin Obsidian (`manifest.json` harus di sini untuk Obsidian dan workflow rilis)
-- [`extension/`](extension/README.id.md): ekstensi Chrome **Seedbed Capture**, proyek terpisah dengan `package.json` dan tes sendiri (`cd extension && npm ci && npm test && npm run build`); bukan bagian rilis plugin
 
 Struktur plugin:
 - `src/domain`: logika murni, tanpa `obsidian`

@@ -22,7 +22,7 @@ export interface CliSpec {
 
 /** Nama model dibatasi agar tidak bisa menyelundupkan flag baru. */
 export function isSafeModelName(model: string): boolean {
-	return model === "" || /^[A-Za-z0-9][A-Za-z0-9._:\-\/]{0,63}$/.test(model);
+	return model === "" || /^[A-Za-z0-9][A-Za-z0-9._:\-/]{0,63}$/.test(model);
 }
 
 /**
@@ -72,6 +72,7 @@ const claude: CliSpec = {
 		}
 		if (!obj || typeof obj !== "object") throw new Error("claude: unexpected output");
 		const o = obj as Record<string, unknown>;
+		// eslint-disable-next-line @typescript-eslint/no-base-to-string -- Preserve legacy CLI error formatting without exposing additional structured payload fields.
 		if (o.is_error === true) throw new Error(`claude error: ${String(o.result ?? o.subtype ?? "unknown").slice(0, 200)}`);
 		if (typeof o.result !== "string") throw new Error("claude: no result field");
 		return o.result;

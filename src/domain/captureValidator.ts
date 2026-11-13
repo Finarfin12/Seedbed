@@ -1,3 +1,4 @@
+// Protocol parity fixture: https://github.com/Finarfin12/seedbed-capture/tree/main/parity
 /**
  * Validasi + pembangun catatan untuk tangkapan dari ekstensi Seedbed Capture (obsidian://seedbed-capture).
  * Murni (tanpa import obsidian). Prinsip: isi link TIDAK DIPERCAYA. Semua nilai divalidasi, dipotong, dan di-escape;
@@ -28,20 +29,19 @@ export type CaptureError = "bad-version" | "no-text";
 
 export type CaptureValidation = { ok: true; data: CaptureData } | { ok: false; error: CaptureError };
 
-// Karakter kontrol kecuali \n dan \t (dibuang). Termasuk \u0000-\u0008, \u000b, \u000c, \u000e-\u001f, \u007f, serta pemisah baris/paragraf Unicode.
-// eslint-disable-next-line no-control-regex -- the regex must match control characters on purpose, to strip them from captured text
-const CONTROL = new RegExp(
-	"[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f\u2028\u2029\u202a-\u202e\u2066-\u2069]",
-	"g",
-);
+// Control and directional characters excluded from captured text.
+function replaceCaptureControls(text: string, replacement: string): string {
+  return Array.from(text, ch => {
+    const c = ch.charCodeAt(0);
+    return (c <= 8 || c === 11 || c === 12 || (c >= 14 && c <= 31) || c === 127 || (c >= 0x2028 && c <= 0x202e) || (c >= 0x2066 && c <= 0x2069)) ? replacement : ch;
+  }).join("");
+}
 
 const TRUNC_MARK = "…(dipotong)";
 
 /** Normalisasi blok teks: CRLF -> LF, buang karakter kontrol/bidi, rapikan baris kosong berlebih. */
 export function normalizeBlock(raw: string): string {
-	return raw
-		.replace(/\r\n?/g, "\n")
-		.replace(CONTROL, "")
+	return replaceCaptureControls(raw.replace(/\r\n?/g, "\n"), "")
 		.replace(/[ \t]+\n/g, "\n")
 		.replace(/\n{3,}/g, "\n\n")
 		.trim();
@@ -49,7 +49,7 @@ export function normalizeBlock(raw: string): string {
 
 /** Satu baris: semua spasi/baris baru jadi satu spasi. */
 export function normalizeLine(raw: string): string {
-	return raw.replace(CONTROL, "").replace(/\s+/g, " ").trim();
+	return replaceCaptureControls(raw, "").replace(/\s+/g, " ").trim();
 }
 
 function cut(s: string, max: number): { value: string; truncated: boolean } {
@@ -100,7 +100,7 @@ export function validateCapture(params: CaptureParams, opts: { maxText: number; 
 
 /** Escape untuk teks satu baris di posisi header callout / teks tautan Markdown. */
 export function escapeInline(s: string): string {
-	return normalizeLine(s).replace(/([\\\[\]<>`*_|~#])/g, "\\$1");
+	return normalizeLine(s).replace(/([\\[\]<>`*_|~#])/g, "\\$1");
 }
 
 /**
@@ -172,8 +172,7 @@ const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
 /** Nama dasar file yang aman di semua OS dan tidak bisa keluar folder / merusak tautan wiki. Selalu tidak kosong. */
 export function captureFileBase(d: CaptureData, today: string): string {
 	const source = d.title || d.text.split("\n")[0] || "";
-	let name = source
-		.replace(CONTROL, " ")
+	let name = replaceCaptureControls(source, " ")
 		.replace(/[\\/:*?"<>|#^[\]]/g, " ")
 		.replace(/\s+/g, " ")
 		.trim();

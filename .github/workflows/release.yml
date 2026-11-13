@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -27,7 +29,13 @@ jobs:
       - name: Cek aset rilis
         run: |
           for f in main.js manifest.json styles.css; do [ -s "$f" ] || { echo "Missing release asset $f"; exit 1; }; done
-      # Aset rilis HANYA berkas plugin di root (main.js, manifest.json, styles.css); extension/ tidak ikut.
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
       - name: Buat rilis (draft)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -28,7 +28,7 @@ import { FeynmanGapsView, GAPS_VIEW } from "./ui/gapsView";
 import { INCUBATOR_VIEW, IncubatorView } from "./ui/incubatorView";
 import { BengkelSettingTab } from "./ui/settingsTab";
 
-const BASE_BANKS: Banks = { id: bankId as Banks["id"], en: bankEn as Banks["en"] };
+const BASE_BANKS: Banks = { id: bankId, en: bankEn };
 
 export default class SeedbedPlugin extends Plugin {
 	settings: Settings = structuredClone(DEFAULT_SETTINGS);
@@ -265,7 +265,7 @@ export default class SeedbedPlugin extends Plugin {
 		const last = this.autofillRecent.get(path);
 		if (last !== undefined && Date.now() - last < 5000) return;
 		if (isInTemplateFolder(path, this.templateFolder)) return; // berkas templat itu sendiri
-		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
 		const patch = planAutofill(fm, this.settings.properties, this.controller.today(), this.settings);
 		if (!patch) return;
 		this.autofillBusy.add(path);
