@@ -8,7 +8,7 @@ await s.reloadPlugin();
 await s.setSettings({ language: "en" });
 const U = (n) => `Uji 0.8/${n}.md`;
 const today = new Date(); const addD = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
-const OLD = ["small weekly habit tracker", "enough time to read", "friends said they would use it", "Publishers might prefer", "streaks matter more", "why people stop reading"];
+const OLD = ["small weekly habit tracker", "already read at least once", "friends said they would use it", "Publishers might prefer", "streaks matter more", "why people stop reading"];
 const domHasOld = () => s.c.ev(`(()=>{ const h=document.body.innerHTML; return ${JSON.stringify(OLD)}.filter(x=>h.includes(x)) })()`);
 const modalHasOld = () => s.c.ev(`(()=>{ const h=document.querySelector('.modal')?.innerHTML ?? ''; return ${JSON.stringify(OLD)}.filter(x=>h.includes(x)) })()`);
 
@@ -42,7 +42,7 @@ await s.fill(["I think people will not keep up the habit after the first weeks"]
 const sub1 = await s.clickModal("Submit answer"); await sleep(500);
 const cmp = await s.modalText(); const leakAfter = await modalHasOld();
 await s.shot("T-RT3", "setelah kirim: jawaban sekarang dan sebelumnya berdampingan");
-rec("T-RT3", sub1 && /Your answer now/.test(cmp) && /Your earlier answer/.test(cmp) && /What do you notice/.test(cmp) && leakAfter.length >= 1 && !/\b(score|correct|wrong|right|good|better|worse)\b/i.test(cmp.replace(/What do you notice when you compare them\?/, "")),
+rec("T-RT3", sub1 && /Your answer now/.test(cmp) && /Your earlier answer/.test(cmp) && /What do you notice/.test(cmp) && leakAfter.length >= 1 && !/\b(score|correct|wrong|good|better|worse)\b/i.test(cmp.replace(/What do you notice when you compare them\?/, "")),
   `submitted=${sub1}; earlier answer fragments now visible=${JSON.stringify(leakAfter)}`, `## modal after submit\n${cmp}`);
 // T-RT4: second question, rating Forgot
 await s.clickModal("Next question"); await sleep(400);

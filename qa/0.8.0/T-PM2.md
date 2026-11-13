@@ -13,11 +13,11 @@ Imagine it is a year from now and this idea failed. What is the most likely caus
 
 Early signal · Bank
 
-What warning signs would have shown up in the first month?
+Which small thing going wrong first would tell you it is failing?
 
 Assumption · Bank
 
-Which belief, if wrong, breaks the whole idea?
+What did you take for granted that was not true?
 
 Affected · Bank
 
@@ -25,7 +25,7 @@ Who or what did you not take into account?
 
 Prevention · Bank
 
-Which one cheap step now would make that failure less likely?
+What would you change in the plan after thinking about this?
 
 Answered: 0 of 5. Passes when 3 answers are long enough.
 Cancel
@@ -49,7 +49,7 @@ Idea body PM Matang.
 > Answer: \[!note] the habit never forms because nobody opens it
 >
 > **Early signal** · Bank
-> What warning signs would have shown up in the first month?
+> Which small thing going wrong first would tell you it is failing?
 > Answer: people forget it exists after two weeks of use
 
 ```

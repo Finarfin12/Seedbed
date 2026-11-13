@@ -9,11 +9,11 @@ Bayangkan ide ini sudah gagal. Jawab minimal 3 pertanyaan dengan sedikitnya 20 k
 
 Penyebab · Bank
 
-Setahun lagi ide ini gagal. Apa yang salah dan tidak kamu duga?
+Bayangkan setahun lagi ide ini gagal. Apa penyebab yang paling mungkin?
 
 Sinyal awal · Bank
 
-Tanda peringatan apa yang akan muncul di bulan pertama?
+Kalau menengok ke belakang, sinyal awal apa yang kamu abaikan?
 
 Asumsi · Bank
 
@@ -21,11 +21,11 @@ Apa yang kamu anggap benar begitu saja padahal tidak?
 
 Terdampak · Bank
 
-Orang atau kelompok mana yang diam-diam bisa menghalangi ini?
+Siapa yang dirugikan atau terganggu oleh ide ini lalu menolaknya?
 
 Pencegahan · Bank
 
-Satu langkah murah apa yang membuat kegagalan itu lebih kecil kemungkinannya?
+Apa yang bisa kamu lakukan sekarang untuk mengurangi risiko terbesar tadi?
 
 Terjawab: 0 dari 5. Lolos bila 3 jawaban cukup panjang.
 Batal
@@ -38,15 +38,15 @@ Imagine this idea has already failed. Answer at least 3 questions with at least 
 
 Cause · Bank
 
-A year later this idea is dead. What killed it?
+Imagine it is a year from now and this idea failed. What is the most likely cause?
 
 Early signal · Bank
 
-Which small thing going wrong first would tell you it is failing?
+Looking back, what early signal did you ignore?
 
 Assumption · Bank
 
-Which assumption behind this idea turned out to be false?
+What did you take for granted that was not true?
 
 Affected · Bank
 
@@ -54,7 +54,7 @@ Which person or group could quietly block this?
 
 Prevention · Bank
 
-Which one cheap step now would make that failure less likely?
+What would you change in the plan after thinking about this?
 
 Answered: 0 of 5. Passes when 3 answers are long enough.
 Cancel

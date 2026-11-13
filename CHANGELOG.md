@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.0
+- **Format v2** (shared with the agent skill, see README "Format v2"): `gates` keeps unknown values such as `premortem` when the plugin rewrites it (0.7.0 dropped them); new callouts `[!premortem]`, `[!retrieval]`, `[!connect]`; a line of callout content that starts with `[!` is now written as `\[!` (the format already required it, the plugin did not do it).
+- **Pre-mortem** (new command and Incubator button for mature ideas, optional, on by default): 5 questions, passes with 3 answers of 20+ characters, adds `premortem` to `gates`, never changes the status.
+- **Recall** (retrieval practice): for due notes that have earlier answers, your answer comes first and the earlier answer is revealed only after you submit (kept by code, not CSS). Optional self-rating (Remembered / Partly / Forgot) moves the next review (÷2 / ×1.5, can be turned off). No scores, no right/wrong.
+- **Stuck** section in the Incubator and **Create weekly digest** command (`Seedbed digest YYYY-MM-DD.md`, never overwrites). "Stuck" = the file was not edited for more than 30 days (file modified time; any edit or sync resets it). Optional weekly reminder (off by default).
+- **Connect**: asks how an idea relates to your other Seedbed ideas (only `type: idea/concept` notes are ever read). A `[[link]]` is added only after you press its button.
+- **Feynman**: definitions that are circular or empty are flagged; plugin and extension callouts are not analysed.
+- **AI (still off by default; AI only asks)**: tailored pre-mortem questions, Connect questions (sends the title and first 300 characters of up to 10 other Seedbed notes), one question under the digest suggestion, and "Ask a follow-up" (max 2 per gap) in the Feynman gaps panel. With AI off nothing is sent and nothing is run.
+- Fixes found while testing: similarity ignores frontmatter and words every Seedbed note shares.
+
 ## 0.7.0
 - **License changed to MIT** (was 0-BSD): `LICENSE`, `package.json`, and the README now say MIT, copyright (c) 2026 Finarfin12. The same change applies to Seedbed Capture.
 - **Note properties are now plain English names without a prefix, for every UI language:** `type: idea | concept`, `status: seed | growing | mature | discarded`, `created`, `review`, `gates`, `source`, `origin`. The capture callout `[!pemicu]` is now `[!trigger]` (`[!socratic]` and `[!devil]` are unchanged). Dates stay `YYYY-MM-DD`.

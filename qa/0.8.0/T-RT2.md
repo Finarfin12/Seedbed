@@ -8,9 +8,9 @@ Recall: remember before you reread
 Answer from memory. Your earlier answer appears only after you submit.
 
 Question 1 of 2
-Viewpoints
+Assumptions
 
-Who would see this differently?
+What do you assume?
 
 Cancel
 Submit answer

@@ -19,7 +19,7 @@ Idea body PM Matang.
 > Answer: \[!note] the habit never forms because nobody opens it
 >
 > **Early signal** · Bank
-> What warning signs would have shown up in the first month?
+> Which small thing going wrong first would tell you it is failing?
 > Answer: people forget it exists after two weeks of use
 
 ```

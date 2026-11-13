@@ -80,13 +80,13 @@ Idea body RT.
 
 > [!retrieval]- Retrieval — 2026-11-13
 > **Recall** · Bank · forgot
-> Who would see this differently?
+> What do you assume?
 > Answer: I think people will not keep up the habit after the first weeks
-> Earlier answer: Publishers might prefer sales numbers over habits.
+> Earlier answer: I assume people already read at least once a week.
 >
 > **Recall** · Bank · forgot
-> What do you assume?
+> What follows if this is true?
 > Answer: not sure at all about this one
-> Earlier answer: I assume people already read at least once a week.
+> Earlier answer: Then streaks matter more than the number of pages.
 
 ```
