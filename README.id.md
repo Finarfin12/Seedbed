@@ -4,13 +4,16 @@
 
 Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik status setelah lolos "gerbang" berpikir: **Socratic**, **Devil's Advocate**, dan **Feynman**. AI opsional hanya boleh bertanya, tidak pernah menjawab.
 
-> **Status: v0.7.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Baru sejak 0.6.0: nama properti polos, templat, dan tangkapan dari ekstensi Chrome [Seedbed Capture](#seedbed-capture-ekstensi-browser).
+> **Status: v0.8.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Baru di 0.8.0: Pre-mortem, Recall, bagian Macet dan digest mingguan, Connect, serta pemeriksaan Feynman yang lebih ketat. Lihat [Tangkapan layar](#tangkapan-layar).
+
+![Panel Inkubator berisi ide jatuh tempo, tombol Recall dan Naikkan, serta bagian Macet](docs/screenshots/incubator.png)
 
 **Privasi dan jaringan.** Saat fitur AI **mati (bawaan)**, plugin ini tidak melakukan satu pun permintaan jaringan dan tidak menjalankan program apa pun. Semua data berupa frontmatter dan callout Markdown biasa di vault-mu, jadi tetap terbaca tanpa plugin. AI hanya aktif jika kamu menyalakannya dan menyetujui tiap penyedia (lihat [AI opsional](#ai-opsional)).
 
 ## Daftar isi
 - [Konsep](#konsep)
 - [Perintah](#perintah)
+- [Tangkapan layar](#tangkapan-layar)
 - [Format data](#format-data)
 - [Mode Feynman](#mode-feynman)
 - [Bank pertanyaan kustom](#bank-pertanyaan-kustom)
@@ -57,6 +60,16 @@ Benih --(Socratic / Feynman)--> Tumbuh --(Devil's Advocate)--> Matang
 
 Panel Inkubator punya tombol **Naikkan / Tunda / Buang / Buka**, plus **Buka ulang / Pulihkan**, **Recall** (catatan jatuh tempo yang punya jawaban lama) dan **Pre-mortem** (catatan matang). Bagian **Macet** memuat catatan yang berkasnya tidak diedit lebih dari 30 hari (bisa diatur); edit apa pun, termasuk sinkronisasi, mengeluarkannya dari sana. Di desktop ada penanda "💡 N jatuh tempo" di status bar; di mobile penandanya ada di panel.
 
+## Tangkapan layar
+
+Diambil saat uji manual 0.8.0 (Obsidian 1.15.0, Windows 11, vault uji). Antarmuka di gambar berbahasa Inggris; plugin juga tersedia dalam bahasa Indonesia.
+
+| | |
+|---|---|
+| ![Gerbang Socratic: satu pertanyaan per langkah, minimal 20 karakter](docs/screenshots/socratic.png) **Gerbang Socratic.** Satu pertanyaan per langkah; jawaban minimal 20 karakter. | ![Gerbang Devil's Advocate dengan lima pertanyaan penantang](docs/screenshots/devil.png) **Gerbang Devil's Advocate.** Lima pertanyaan penantang; minimal 4 dijawab. |
+| ![Panel celah Feynman menandai definisi melingkar dan kosong](docs/screenshots/feynman-gaps.png) **Celah Feynman.** Istilah yang belum dijelaskan, kini termasuk definisi melingkar ("Entropy is entropy") dan kosong. | ![Modal Pre-mortem dengan pertanyaan per kategori](docs/screenshots/premortem.png) **Pre-mortem.** "Setahun lagi gagal, kenapa?" untuk ide matang. Status tidak berubah. |
+| ![Modal Recall menampilkan jawaban baru dan jawaban lama berdampingan](docs/screenshots/recall.png) **Recall.** Jawaban lama tersembunyi sampai kamu mengirim jawaban, lalu keduanya tampil berdampingan. Tanpa skor. | ![Catatan digest mingguan berisi bagian jatuh tempo, macet, dan per status](docs/screenshots/digest.png) **Digest mingguan.** Jatuh tempo, macet, jumlah per status, minggu ini, dan satu ide untuk diuji. |
+| ![Modal Connect menanyakan hubungan ide ini dengan ide Seedbed lain](docs/screenshots/connect.png) **Connect.** Kandidat hanya ide Seedbed lain; tautan ditambahkan hanya saat kamu menekan tombolnya. | |
 ## Format data
 
 Frontmatter adalah sumber kebenaran status. Nama properti **polos, tanpa prefiks, dan berbahasa Inggris**, begitu juga nilainya, untuk semua bahasa UI, supaya query dan template tetap sederhana:
