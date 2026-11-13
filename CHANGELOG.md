@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.1
+- Fixes for the Obsidian community plugin review: views are no longer detached in `onunload` (they keep the place you moved them to), `minAppVersion` raised to 1.8.7 because the plugin uses `getLanguage()`, and the `eslint-disable` comments now say why they are needed.
+
 ## 0.8.0
 - **Format v2** (shared with the agent skill, see README "Format v2"): `gates` keeps unknown values such as `premortem` when the plugin rewrites it (0.7.0 dropped them); new callouts `[!premortem]`, `[!retrieval]`, `[!connect]`; a line of callout content that starts with `[!` is now written as `\[!` (the format already required it, the plugin did not do it).
 - **Pre-mortem** (new command and Incubator button for mature ideas, optional, on by default): 5 questions, passes with 3 answers of 20+ characters, adds `premortem` to `gates`, never changes the status.

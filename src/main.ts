@@ -123,11 +123,6 @@ export default class SeedbedPlugin extends Plugin {
 		});
 	}
 
-	onunload(): void {
-		this.app.workspace.detachLeavesOfType(INCUBATOR_VIEW);
-		this.app.workspace.detachLeavesOfType(GAPS_VIEW);
-	}
-
 	private registerCommands(): void {
 		const c = this.controller;
 		const t = c.t;
