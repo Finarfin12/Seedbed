@@ -1,6 +1,6 @@
 {
 	"name": "seedbed",
-	"version": "0.8.2",
+	"version": "0.8.3",
 	"description": "Grow ideas from seed to mature through thinking gates (Socratic, Devil's Advocate, Feynman).",
 	"main": "main.js",
 	"type": "module",
@@ -12,7 +12,8 @@
 		"test:live": "vitest run --config vitest.live.config.ts",
 		"install-test-vault": "node scripts/install-to-test-vault.mjs",
 		"gen-test-vault": "node scripts/gen-test-vault.mjs",
-		"check-integrity": "node scripts/check-integrity.mjs"
+		"check-integrity": "node scripts/check-integrity.mjs",
+		"lint": "eslint ."
 	},
 	"keywords": [
 		"obsidian",
@@ -25,7 +26,7 @@
 		"esbuild": "0.25.5",
 		"eslint": "9.39.5",
 		"eslint-plugin-obsidianmd": "0.5.1",
-		"obsidian": "latest",
+		"obsidian": "1.8.7",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "8.72.2",
 		"vite": "6.4.6",

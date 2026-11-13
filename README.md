@@ -8,7 +8,7 @@ An Obsidian plugin for incubating ideas and testing your understanding. An idea 
 
 ![Incubator panel with due ideas, Recall and Promote buttons, and the Stuck section](docs/screenshots/incubator.png)
 
-**Privacy and network.** With AI **off (the default)**, the plugin makes no network requests and runs no external programs. All data is plain Markdown frontmatter and callouts in your vault, so it stays readable without the plugin. AI only runs after you turn it on and approve each provider (see [Optional AI](#optional-ai)).
+**Privacy and network.** With AI **off (the default)**, the plugin makes no network requests and runs no external programs. All data is plain Markdown frontmatter and callouts in your vault, so it stays readable without the plugin. AI only runs after you turn it on and approve each provider (see [Optional AI](#optional-ai)). The plugin reads the vault note list for Incubator, Connect and digest, selecting notes with `type: idea` or `type: concept`.
 
 ## Contents
 - [Concept](#concept)
@@ -18,7 +18,7 @@ An Obsidian plugin for incubating ideas and testing your understanding. An idea 
 - [Feynman mode](#feynman-mode)
 - [Custom question bank](#custom-question-bank)
 - [Optional AI](#optional-ai)
-- [Seedbed Capture (browser extension)](#seedbed-capture-browser-extension), source in [`extension/`](extension/README.md)
+- [Seedbed Capture (browser extension)](#seedbed-capture-browser-extension), source at [seedbed-capture](https://github.com/Finarfin12/seedbed-capture)
 - [Language](#language)
 - [Installation](#installation)
 - [Development](#development)
@@ -328,7 +328,6 @@ Open the `test-vault/` folder in Obsidian (**Open folder as vault**) and enable 
 
 Repository layout:
 - repository root: the Obsidian plugin (`manifest.json` must be here for Obsidian and for the release workflow)
-- [`extension/`](extension/README.md): the **Seedbed Capture** Chrome extension, a separate project with its own `package.json` and tests (`cd extension && npm ci && npm test && npm run build`); it is not part of the plugin release
 
 Plugin layout:
 - `src/domain`: pure logic, no `obsidian` imports

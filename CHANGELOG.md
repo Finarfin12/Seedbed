@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+- Move Seedbed Capture into its own repository, retaining its history and parity tests.
+- Clean up scanner warnings, add lint checks and release attestations.
+- Protect provider errors from exposing credentials; preserve legacy CLI error formatting.
+- Defer declarative setting definitions because they require a newer Obsidian API than 1.8.7. Two sanitized-error exceptions and one legacy-format exception remain intentional.
+
 ## 0.8.2
 - Interop only: the Feynman analyzer skips the text of `[!evidence]` callouts, the trail written by the agent skill's new evidence mode (skill 0.4.0), so quotes and answers in them neither create gaps nor count as an explanation. No new command, setting, UI or network use; evidence mode is a skill feature, not a plugin feature.
 

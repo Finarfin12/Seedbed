@@ -1,3 +1,4 @@
+// Protocol parity fixture: https://github.com/Finarfin12/seedbed-capture/tree/main/parity
 /**
  * Validasi + pembangun catatan untuk tangkapan dari ekstensi Seedbed Capture (obsidian://seedbed-capture).
  * Murni (tanpa import obsidian). Prinsip: isi link TIDAK DIPERCAYA. Semua nilai divalidasi, dipotong, dan di-escape;
