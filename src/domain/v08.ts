@@ -211,6 +211,8 @@ export interface DigestInput {
 	/** Gerbang lolos minggu ini: { title, gate } dari tanggal callout. */
 	gatesThisWeek: Array<{ title: string; gate: string }>;
 	lang: Language;
+	/** DG-4: satu kalimat tanya dari AI untuk ide yang disarankan (opsional) dan label sumbernya. */
+	suggestQuestion?: { text: string; source: string };
 }
 
 export function isStuck(i: Idea, today: string, stuckDays: number): boolean {
@@ -251,6 +253,7 @@ const L = {
 		newSeeds: "New seeds",
 		gates: "Gates passed",
 		suggest: "Suggested to test",
+		ask: "Question",
 		stuckNoSoc: (d: number) => `not edited for ${d} days and the Socratic gate is not passed yet`,
 		stuckR: (d: number) => `not edited for ${d} days`,
 		dueR: (d: number) => (d > 0 ? `review was due ${d} days ago` : "review is due"),
@@ -266,6 +269,7 @@ const L = {
 		newSeeds: "Benih baru",
 		gates: "Gerbang lolos",
 		suggest: "Disarankan diuji",
+		ask: "Pertanyaan",
 		stuckNoSoc: (d: number) => `tidak diedit ${d} hari dan gerbang Socratic belum lolos`,
 		stuckR: (d: number) => `tidak diedit ${d} hari`,
 		dueR: (d: number) => (d > 0 ? `tinjau jatuh tempo ${d} hari lalu` : "tinjau jatuh tempo"),
@@ -294,7 +298,9 @@ export function buildDigest(inp: DigestInput): string {
 	lines.push("", `## ${t.counts}`, `- ${t.status.benih}: ${count("benih")}`, `- ${t.status.tumbuh}: ${count("tumbuh")}`, `- ${t.status.matang}: ${count("matang")}`, `- ${t.status.dibuang}: ${count("dibuang")}`);
 	lines.push("", `## ${t.week}`, `- ${t.newSeeds}: ${seeds.length ? seeds.map(link).join(", ") : t.none}`);
 	lines.push(`- ${t.gates}: ${inp.gatesThisWeek.length ? inp.gatesThisWeek.map((g) => `[[${g.title}]] (${g.gate})`).join(", ") : t.none}`);
-	lines.push("", `## ${t.suggest}`, sug ? `- ${link(sug.idea)}: ${reason}.` : `- ${t.none}`, "");
+	lines.push("", `## ${t.suggest}`, sug ? `- ${link(sug.idea)}: ${reason}.` : `- ${t.none}`);
+	if (sug && inp.suggestQuestion) lines.push(`- ${t.ask}: ${inp.suggestQuestion.text} (${inp.suggestQuestion.source})`);
+	lines.push("");
 	return lines.join("\n");
 }
 
@@ -309,10 +315,19 @@ export function gatesFromText(text: string, today: string): string[] {
 	return [...new Set(out)];
 }
 
+// ---------------- Pengingat digest (DG-6) ----------------
+
+/** Pengingat muncul bila aktif, hari ini = hari yang dipilih (0=Minggu), dan belum diingatkan dalam 6 hari terakhir. */
+export function reminderDue(s: Settings, today: string, weekday: number): boolean {
+	const r = s.digest.reminder;
+	if (!r.enabled || r.day !== weekday) return false;
+	return s.digest.lastReminded === "" || daysBetween(s.digest.lastReminded, today) >= 6;
+}
+
 // ---------------- Connect ----------------
 
 const STOP = new Set(
-	"the a an and or of to in on for with is are was be it this that as at by from not no yes i you we they my your our their yang dan di ke dari untuk dengan adalah itu ini atau pada saya kamu kita mereka tidak ada akan bisa juga".split(" "),
+	"the a an and or of to in on for with is are was be it this that as at by from not no yes i you we they my your our their yang dan di ke dari untuk dengan adalah itu ini atau pada saya kamu kita mereka tidak ada akan bisa juga idea ide concept konsep note catatan".split(" "),
 );
 
 function tokens(s: string): Set<string> {

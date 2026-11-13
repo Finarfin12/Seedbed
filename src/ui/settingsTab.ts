@@ -199,6 +199,23 @@ export class BengkelSettingTab extends PluginSettingTab {
 			});
 		number(containerEl, t("set.digest.stuckDays"), t("set.digest.stuckDays.desc"), () => s.digest.stuckDays, (v) => (s.digest.stuckDays = v), 1, 3650);
 
+		new Setting(containerEl)
+			.setName(t("set.digest.reminder"))
+			.setDesc(t("set.digest.reminder.desc"))
+			.addToggle((c) =>
+				c.setValue(s.digest.reminder.enabled).onChange(async (v) => {
+					s.digest.reminder.enabled = v;
+					await save();
+				}),
+			)
+			.addDropdown((d) => {
+				for (let i = 0; i < 7; i++) d.addOption(String(i), t(("day." + i) as Key));
+				d.setValue(String(s.digest.reminder.day)).onChange(async (v) => {
+					s.digest.reminder.day = Number(v);
+					await save();
+				});
+			});
+
 		new Setting(containerEl).setName(t("set.feynman")).setHeading();
 		new Setting(containerEl)
 			.setName(t("set.feynman.jargon"))

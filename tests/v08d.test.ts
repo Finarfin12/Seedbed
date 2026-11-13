@@ -27,6 +27,11 @@ describe("8d connect: candidates come only from the notes the caller passes (See
 		expect(rankCandidates({ ...a, text: fmx + "\nTepung dan ragi." }, [b], 10)).toHaveLength(1);
 		expect(rankCandidates({ ...a, text: "\nSocratic assumptions bank" }, [b], 10)).toEqual([]);
 	});
+	it("words every Seedbed note shares (idea, concept, note) are not similarity", () => {
+		const a = { path: "a.md", title: "Quasar", text: "Idea note zebra xylophone." };
+		const b = { path: "b.md", title: "Roti", text: "Concept note tepung ragi." };
+		expect(rankCandidates(a, [b], 10)).toEqual([]);
+	});
 	it("a note that is not in the pool can never be returned (even with a near-identical title)", () => {
 		const r = rankCandidates(target, pool, 10);
 		expect(JSON.stringify(r)).not.toContain("JANGAN-DIBACA");

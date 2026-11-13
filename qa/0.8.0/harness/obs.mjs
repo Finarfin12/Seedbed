@@ -35,7 +35,8 @@ export async function connect() {
   const ws = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
   let id = 0; const pending = new Map();
-  ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); } };
+  const events = [];
+  ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); } else if (d.method) events.push(d); };
   const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
   const ev = async (expression) => {
     const r = await send("Runtime.evaluate", { expression, awaitPromise: true, returnByValue: true });
@@ -46,7 +47,7 @@ export async function connect() {
     const r = await send("Page.captureScreenshot", { format: "png" });
     writeFileSync(file, Buffer.from(r.result.data, "base64"));
   };
-  return { ev, shot, send, close: () => ws.close(), title: page.title, url: page.url };
+  return { ev, shot, send, events, close: () => ws.close(), title: page.title, url: page.url };
 }
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

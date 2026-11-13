@@ -28,10 +28,13 @@ import type { TFn } from "./i18n";
 import { ConfirmModal } from "./ui/confirmModal";
 import { DevilModal } from "./ui/devilModal";
 import { PremortemModal } from "./ui/premortemModal";
+import { suggest } from "./domain/v08";
 import { bodyOf, buildDigest, connectQuestion, gatesFromText, rankCandidates, relatedLine } from "./domain/v08";
 import type { ConnectNote } from "./domain/v08";
 import { ConnectModal } from "./ui/connectModal";
 import type { ConnectItem } from "./ui/connectModal";
+import { PREMORTEM_CATEGORIES } from "./domain/v08";
+import type { SourceLabel } from "./domain/ai/types";
 import { RecallSession, parseQaPairs, pickRecall, premortemPassed, premortemQuestions, retrievalReview } from "./domain/v08";
 import type { SelfRating } from "./domain/v08";
 import { RetrievalModal } from "./ui/retrievalModal";
@@ -72,6 +75,16 @@ export class Controller {
 	/** path -> ada jejak jawaban lama? (cache per mtime supaya Inkubator tidak membaca berkas saat render) */
 	private recallCache = new Map<string, { mtime: number; has: boolean }>();
 	private recallBusy = new Set<string>();
+	/** FY-2: jumlah pertanyaan lanjutan yang sudah diminta per (catatan|istilah) pada sesi ini. */
+	private followCount = new Map<string, number>();
+
+	/** AI aktif tetapi gagal: beri tahu, lalu pemanggil memakai bank/aturan. */
+	private noticeAiFailed(svc: QuestionService): void {
+		if (!svc.aiAvailable) return;
+		const fails = svc.lastAttempts.filter((a) => !a.ok);
+		const reason = (fails.length ? fails.map((a) => a.provider + ": " + (a.error ?? "error")).join("; ") : "no valid output").slice(0, 200);
+		new Notice(this.t("notice.aiFailedBank", { reason }));
+	}
 
 	private get app(): App {
 		return this.host.app;
@@ -440,7 +453,14 @@ export class Controller {
 		}
 		const { file } = cur;
 		const lang = this.settings.language;
-		const items = premortemQuestions(lang).map((q) => ({ ...q, source: { kind: "bank" } as const }));
+		let items: Array<{ category: (typeof PREMORTEM_CATEGORIES)[number]; text: string; source: SourceLabel }> = premortemQuestions(lang).map((q) => ({ ...q, source: { kind: "bank" } as SourceLabel }));
+		const svc = this.host.getQuestionService();
+		if (svc.aiAvailable) {
+			new Notice(this.t("notice.aiPreparing"));
+			const ai = await svc.premortemBatch({ language: lang, noteText: await this.app.vault.read(file) });
+			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, text: ai.texts[i] as string, source: ai.source } : it));
+			else this.noticeAiFailed(svc);
+		}
 		const cfg = this.settings.premortem;
 		new PremortemModal(this.app, this.t, lang, items, {
 			minAnswered: cfg.minAnswered,
@@ -595,7 +615,18 @@ export class Controller {
 			return;
 		}
 		const lang = this.settings.language;
-		const items: ConnectItem[] = ranked.map((r) => ({ path: r.note.path, title: r.note.title, question: connectQuestion(lang, r.note.title), source: { kind: "bank" } }));
+		let items: ConnectItem[] = ranked.map((r) => ({ path: r.note.path, title: r.note.title, question: connectQuestion(lang, r.note.title), source: { kind: "bank" } }));
+		const svc = this.host.getQuestionService();
+		if (svc.aiAvailable) {
+			new Notice(this.t("notice.aiPreparing"));
+			// Hanya catatan aktif + (judul, 300 karakter pertama) kandidat Seedbed yang dikirim. Tanpa path.
+			const ai = await svc.connectBatch(
+				{ language: lang, noteText: target.text },
+				ranked.map((r) => ({ title: r.note.title, text: r.note.text })),
+			);
+			if (ai) items = items.map((it, i) => (ai.texts[i] ? { ...it, question: ai.texts[i] as string, source: ai.source } : it));
+			else this.noticeAiFailed(svc);
+		}
 		new ConnectModal(this.app, this.t, lang, items, {
 			addLink: async (item) => {
 				let added = false;
@@ -635,10 +666,43 @@ export class Controller {
 			const text = await this.app.vault.cachedRead(file);
 			for (const gate of gatesFromText(text, today)) gatesThisWeek.push({ title: idea.title, gate });
 		}
-		const body = buildDigest({ ideas, today, stuckDays: this.settings.digest.stuckDays, gatesThisWeek, lang: this.settings.language });
+		let suggestQuestion: { text: string; source: string } | undefined;
+		const svc = this.host.getQuestionService();
+		const sug = svc.aiAvailable ? suggest(ideas, today, this.settings.digest.stuckDays) : null;
+		if (sug) {
+			const facts = (sug.reasonKey === "due" ? "review overdue " : "not edited for ") + sug.days + " days; status " + sug.idea.status;
+			const ai = await svc.digestQuestion(this.settings.language, sug.idea.title, facts);
+			if (ai) suggestQuestion = { text: ai.text, source: formatSource(ai.source, this.settings.language) };
+			else this.noticeAiFailed(svc);
+		}
+		const body = buildDigest({ ideas, today, stuckDays: this.settings.digest.stuckDays, gatesThisWeek, lang: this.settings.language, suggestQuestion });
 		const file = await this.host.factory.createDigest(this.settings.digest.folder, `Seedbed digest ${today}`, body);
 		new Notice(this.t("notice.digestCreated", { path: file.path }));
 		await this.app.workspace.getLeaf(false).openFile(file);
+	}
+
+	// ---------- Feynman: tanya lanjut (FY-2) ----------
+
+	get aiFollowUp(): boolean {
+		return this.host.getQuestionService().aiAvailable;
+	}
+
+	followUpLeft(path: string, key: string): number {
+		return Math.max(0, 2 - (this.followCount.get(path + "|" + key) ?? 0));
+	}
+
+	/** Maks. 2 pertanyaan per celah per sesi; tidak disimpan di catatan. Gerbang tetap dihitung analyze(). */
+	async followUp(path: string, gap: Gap): Promise<{ text: string; source: string } | null> {
+		const svc = this.host.getQuestionService();
+		const k = path + "|" + gap.key;
+		if (!svc.aiAvailable || this.followUpLeft(path, gap.key) <= 0) return null;
+		const res = await svc.followUp(this.settings.language, gap.term, gap.weak ?? "missing", gap.snippet);
+		if (!res) {
+			this.noticeAiFailed(svc);
+			return null;
+		}
+		this.followCount.set(k, (this.followCount.get(k) ?? 0) + 1);
+		return { text: res.text, source: formatSource(res.source, this.settings.language) };
 	}
 
 	// ---------- Feynman ----------

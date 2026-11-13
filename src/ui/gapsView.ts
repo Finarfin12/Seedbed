@@ -13,6 +13,8 @@ export class FeynmanGapsView extends ItemView {
 	private path: string | null = null;
 	private analysis: Analysis | null = null;
 	private seq = 0;
+	/** FY-2: pertanyaan lanjutan per celah (hanya di memori, tidak ditulis ke catatan). */
+	private followUps = new Map<string, Array<{ text: string; source: string }>>();
 	private scheduleRefresh = debounce(() => void this.refreshNow(), GAPS_REFRESH_MS);
 
 	constructor(
@@ -146,6 +148,29 @@ export class FeynmanGapsView extends ItemView {
 				top.createSpan({ cls: "bengkel-tag", text: t("gaps.termMeta", { n: g.count }) });
 				if (g.weak) top.createSpan({ cls: "bengkel-tag bengkel-weak", text: t(g.weak === "circular" ? "gaps.weakCircular" : "gaps.weakEmpty") });
 				li.createDiv({ cls: "bengkel-meta", text: g.snippet });
+				for (const f of this.followUps.get(a.path + "|" + g.key) ?? []) {
+					const box = li.createDiv({ cls: "bengkel-hint" });
+					box.createSpan({ text: f.source, cls: "bengkel-source" });
+					box.createEl("p", { text: f.text });
+				}
+				if (!g.ignored && this.controller.aiFollowUp) {
+					const left = this.controller.followUpLeft(a.path, g.key);
+					const fb = li.createEl("button", { text: t("gaps.followUp", { n: left }) });
+					fb.disabled = left <= 0;
+					fb.addEventListener("click", () => {
+						fb.disabled = true;
+						fb.setText(t("gaps.followUpLoading"));
+						void this.controller.safe(async () => {
+							const res = await this.controller.followUp(a.path, g);
+							if (res) {
+								const list = this.followUps.get(a.path + "|" + g.key) ?? [];
+								list.push(res);
+								this.followUps.set(a.path + "|" + g.key, list);
+							}
+							this.render();
+						});
+					});
+				}
 				if (g.ignored) {
 					li.createDiv({ cls: "bengkel-meta", text: t("gaps.ignored") });
 				} else {

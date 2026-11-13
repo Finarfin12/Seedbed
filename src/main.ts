@@ -1,3 +1,4 @@
+import { reminderDue } from "./domain/v08";
 import { Notice, Platform, Plugin, TFile, getLanguage, normalizePath } from "obsidian";
 import type { WorkspaceLeaf } from "obsidian";
 import { createQuestionService } from "./adapter/ai/factory";
@@ -300,9 +301,29 @@ export default class SeedbedPlugin extends Plugin {
 		this.statusBarEl.toggleClass("is-empty", n === 0);
 	}
 
+	/** DG-6: pengingat digest mingguan (default mati), paling banyak sekali seminggu. */
+	private digestReminder(): void {
+		const today = this.controller.today();
+		if (!reminderDue(this.settings, today, new Date().getDay())) return;
+		this.settings.digest.lastReminded = today;
+		void this.saveSettings();
+		const t = this.controller.t;
+		const notice: { n?: Notice } = {};
+		const frag = createFragment((f) => {
+			f.createSpan({ text: t("notice.digestReminder") + " " });
+			const b = f.createEl("button", { text: t("btn.createDigest") });
+			b.addEventListener("click", () => {
+				notice.n?.hide();
+				void this.controller.safe(() => this.controller.createDigest());
+			});
+		});
+		notice.n = new Notice(frag, 15000);
+	}
+
 	private notifyStartup(): void {
 		if (this.startupNotified) return;
 		this.startupNotified = true;
+		this.digestReminder();
 		if (!this.settings.notifyOnStartup) return;
 		const n = this.index.due(this.controller.today()).length;
 		if (n > 0) new Notice(this.controller.t("notice.dueStartup", { n }));

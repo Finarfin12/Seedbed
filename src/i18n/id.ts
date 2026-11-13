@@ -206,7 +206,7 @@ export const id = {
 	"notice.aiPreparing": "Menyiapkan pertanyaan dari AI…",
 	"notice.aiFallback": "AI tidak tersedia ({reason}); memakai bank pertanyaan.",
 	"set.ai": "AI (opsional)",
-	"set.ai.intro": "AI hanya BERTANYA (tidak menjelaskan, tidak menjawab, tidak menilai gerbang). Mati secara default. CLI langganan dan API = cloud: isi catatan yang sedang dibuka (maks. batas konteks di bawah) dikirim ke penyedia. Model lokal tetap di komputer ini. Tidak ada AI = tidak ada permintaan jaringan dan tidak ada program yang dijalankan.",
+	"set.ai.intro": "AI hanya BERTANYA (tidak menjelaskan, tidak menjawab, tidak menilai gerbang). Mati secara default. CLI langganan dan API = cloud: isi catatan yang sedang dibuka (maks. batas konteks di bawah) dikirim ke penyedia. Connect juga mengirim judul dan 300 karakter pertama dari maks. 10 catatan Seedbed lainnya (tidak pernah catatan lain). Model lokal tetap di komputer ini. Tidak ada AI = tidak ada permintaan jaringan dan tidak ada program yang dijalankan.",
 	"set.ai.enable": "Aktifkan AI",
 	"set.ai.enable.desc": "Saklar utama. Tiap penyedia di bawah tetap perlu diaktifkan dan disetujui satu per satu.",
 	"set.ai.detect": "Penyedia terdeteksi",
@@ -358,6 +358,24 @@ export const id = {
 	"set.connect.enabled.desc": "Hanya membaca catatan Seedbed lain (type idea/concept). Catatan lain tidak pernah dibaca.",
 	"gaps.weakCircular": "melingkar",
 	"gaps.weakEmpty": "kosong",
+
+	// 0.8.0
+	"notice.aiFailedBank": "AI tidak menjawab ({reason}); memakai pertanyaan bawaan.",
+	"set.digest.reminder": "Pengingat digest mingguan",
+	"set.digest.reminder.desc": "Pemberitahuan saat Obsidian dibuka pada hari yang dipilih, paling banyak sekali seminggu. Mati secara default.",
+	"set.digest.reminderDay": "Hari pengingat",
+	"day.0": "Minggu",
+	"day.1": "Senin",
+	"day.2": "Selasa",
+	"day.3": "Rabu",
+	"day.4": "Kamis",
+	"day.5": "Jumat",
+	"day.6": "Sabtu",
+	"notice.digestReminder": "Saatnya digest mingguan.",
+	"btn.createDigest": "Buat digest",
+	"gaps.followUp": "Tanya lanjut ({n} tersisa)",
+	"gaps.followUpLoading": "Menyiapkan…",
+	"gaps.followUpNone": "Tidak ada pertanyaan lanjutan (AI tidak menjawab).",
 } as const;
 
 export type Key = keyof typeof id;
