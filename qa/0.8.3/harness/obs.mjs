@@ -1,12 +1,13 @@
 import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const base = resolve(here, "../../..");
-export const vault = process.env.SEEDBED_QA_VAULT || "C:\\Users\\atrione\\OpenBot\\Shared\\seedbed-qa-083\\vault";
-export const profile = process.env.SEEDBED_QA_PROFILE || "C:\\Users\\atrione\\OpenBot\\Shared\\seedbed-qa-083\\profile";
+export const vault = process.env.SEEDBED_QA_VAULT || join(tmpdir(), "seedbed-qa-083", "vault");
+export const profile = process.env.SEEDBED_QA_PROFILE || join(tmpdir(), "seedbed-qa-083", "profile");
 export const PORT = 9445;
 const EXE = join(process.env.LOCALAPPDATA, "Programs", "Obsidian", "Obsidian.exe");
 

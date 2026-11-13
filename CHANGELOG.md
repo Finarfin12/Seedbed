@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.4
+- Adopt declarative Settings API (`getSettingDefinitions()`) on `BengkelSettingTab`, enabling native Obsidian Settings Search on Obsidian 1.13.0 and newer.
+- Maintain dual-version compatibility with `minAppVersion: 1.8.7`: older Obsidian versions continue using the declarative definitions as single source of truth through `display()`.
+- Enforce `obsidianmd/settings-tab/prefer-setting-definitions` ESLint rule as error (0 warnings).
+- Clean up machine-specific fallback paths in test harness.
+
 ## 0.8.3
 - Move Seedbed Capture into its own repository, retaining its history and parity tests.
 - Clean up scanner warnings, add lint checks and release attestations.
