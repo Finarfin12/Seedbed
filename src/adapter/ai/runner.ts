@@ -229,13 +229,10 @@ const SCAN_OVERLAP = 128;
 /** Batas keras pemindaian supaya berkas aneh tidak membuat Obsidian macet. */
 const SCAN_MAX_BYTES = 1024 * 1024 * 1024;
 
+/** 1 byte = 1 karakter. (Di TextDecoder "latin1" = windows-1252; untuk nama model ASCII hasilnya identik.) */
+const LATIN1 = new TextDecoder("latin1");
 function latin1(buf: Uint8Array, length: number): string {
-	let out = "";
-	const STEP = 8192;
-	for (let i = 0; i < length; i += STEP) {
-		out += String.fromCharCode(...Array.from(buf.subarray(i, Math.min(length, i + STEP))));
-	}
-	return out;
+	return LATIN1.decode(buf.subarray(0, length));
 }
 
 export class NodeDiscoveryIo implements DiscoveryIo {

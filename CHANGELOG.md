@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0
+- **Automatic model detection.** The model field in Settings → AI is no longer free text: each provider shows a **dropdown filled from the provider itself**, a connection status line (`Connected · N models available`, `Not connected · Unavailable`, `Not connected · API key required`), the button **Check connection and detect models**, and a notice after each check or when you change the program, server type, URL or key. The code contains **no list of model names**.
+  - **Claude Code:** aliases from `claude --help`, the model in `~/.claude/settings.json`, and model names found inside the executable (read in chunks and cached, about 1 s). `-v1` ids are dropped, newest versions first.
+  - **Codex CLI:** the model in `~/.codex/config.toml` and the visible models in `~/.codex/models_cache.json`, in the order Codex lists them.
+  - **Antigravity CLI (`agy`):** the output of `agy models` (`id<TAB>name`): names are shown, ids are saved.
+  - **Gemini CLI:** `~/.gemini/settings.json` and the executable when installed; otherwise `Unavailable` with no models.
+  - **Ollama / LM Studio:** `/api/tags` and `/v1/models` of your local server.
+  - **API:** `GET <base URL>/models` with your key. **No key on a cloud address = `API key required` and zero network requests.**
+  - A model you saved earlier is kept and shown as "(saved)" if it is not in the detected list; **Other…** lets you type a name (checked by the same safe-name rule, so it cannot smuggle flags).
+- **Codex CLI, Gemini CLI and Antigravity CLI are detect-only** (the dropdown works, questions are not run through them). `codex exec --help` (0.167.2) and `agy --help` (1.5.14) have no flag that disables **all** tools (Codex only has per-feature `--disable`, `agy` has `--sandbox` for the terminal and an undocumented `--settings`), so the rule "only run a CLI whose tools are verifiably all off" keeps them from running. Claude Code's safety flags are unchanged. A new list of **forbidden arguments** is enforced next to the required flags for every CLI (for `agy`: `--dangerously-skip-permissions`, `--continue`, `--conversation`, `--remote-control`, ...).
+- **Privacy and disclosure:** to list models the plugin reads the model **name** from the CLI's own config files (`~/.claude`, `~/.codex`, `~/.gemini`), never login/token files, keeps nothing else from them, and runs `claude --help` / `agy models` locally in an empty temp folder. It only happens after you turn AI on and use the check button or change a provider setting; **AI off = no files read, no programs run, no network requests**. The plugin itself sends nothing anywhere (`agy models` may contact its own provider).
+- Type check as the Obsidian review bot sees it: `src/` is now type-checked **without `@types/node`** (own minimal Node types in `runner.ts`), so `npm run lint` shows what the bot shows; tests are checked by `tsconfig.tests.json` as part of `npm run build`.
+- No change to the note format, the gates, "AI only asks", or saved settings (no migration needed).
+
 ## 0.8.4
 - Adopt declarative Settings API (`getSettingDefinitions()`) on `BengkelSettingTab`, enabling native Obsidian Settings Search on Obsidian 1.13.0 and newer.
 - Maintain dual-version compatibility with `minAppVersion: 1.8.7`: older Obsidian versions continue using the declarative definitions as single source of truth through `display()`.

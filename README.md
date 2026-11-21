@@ -4,11 +4,12 @@
 
 An Obsidian plugin for incubating ideas and testing your understanding. An idea only moves up a stage after it passes a thinking "gate": **Socratic**, **Devil's Advocate**, or **Feynman**. The optional AI is only allowed to ask questions, never to answer them.
 
-> **Status: v0.8.4 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.8.0:
+> **Status: v0.9.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.8.0:
 > - **0.8.1:** Scanner compliance fixes and raised `minAppVersion` to `1.8.7`.
 > - **0.8.2:** Feynman analysis skips `[!evidence]` callouts.
 > - **0.8.3:** Browser extension split into standalone [seedbed-capture](https://github.com/Finarfin12/seedbed-capture) repository; scanner warning cleanups.
 > - **0.8.4:** Settings integrated into native Obsidian 1.13+ Settings Search via declarative `getSettingDefinitions()`; fixed settings tab renderer freeze.
+> - **0.9.0:** Models are detected automatically (dropdown + connection status) for Claude Code, Codex, Antigravity (`agy`), Gemini, Ollama, LM Studio and API providers; Codex, Gemini and Antigravity are detect-only.
 > Also available as an AI agent skill at [seedbed-skill](https://github.com/Finarfin12/seedbed-skill). See [Screenshots](#screenshots).
 
 ![Incubator panel with due ideas, Recall and Promote buttons, and the Stuck section](docs/screenshots/incubator.png)
@@ -232,7 +233,7 @@ AI is used **only to ask questions**: Socratic and Devil's Advocate questions th
 
 | Provider | What happens | Does data leave your computer? |
 |---|---|---|
-| **Subscription CLI** (Claude Code) | Runs the `claude` program you are already signed in to. Desktop only. | **Yes** (cloud): the open note |
+| **Subscription CLI** (Claude Code) | Runs the `claude` program you are already signed in to. Desktop only. Codex CLI, Gemini CLI and Antigravity CLI (`agy`) are only **detected** (models listed), not run. | **Yes** (cloud): the open note (Claude Code only) |
 | **Local model** (Ollama, LM Studio) | Requests to a server on your machine (`localhost`). The plugin installs nothing. | No |
 | **API** (OpenAI-compatible) | Requests to the URL you enter, with your API key. | **Yes** (cloud), unless the URL is localhost |
 
@@ -243,8 +244,23 @@ AI is used **only to ask questions**: Socratic and Devil's Advocate questions th
 - The note is passed via **stdin**, never as an argument. The working directory is an **empty temp folder** that is deleted afterwards, not your vault.
 - A hard timeout applies; the process is killed if it runs over. Output is only used as question text after it passes a validator, and is never executed.
 - The plugin **never reads login or token files** of any provider.
-- **Codex CLI and Gemini CLI are not supported yet**, because there is no verified way to disable all of their tools.
+- **Codex CLI, Gemini CLI and Antigravity CLI (`agy`) are detect-only**: their models appear in the dropdown but they never run questions, because there is no verified way to disable all of their tools (`codex exec --help` has only per-feature `--disable`; `agy --help` has no tools-off flag). A list of forbidden arguments (e.g. `--dangerously-skip-permissions`, `--continue`, `--conversation`, `--remote-control`) is refused for every CLI.
 - Prompt injection inside a note can still be attempted. The plugin wraps the note as data, disables all tools, and rejects any output that isn't a question.
+
+### Automatic model detection (0.9.0)
+
+In Settings → AI (after you turn AI on), each provider shows a model **dropdown filled by the provider itself**, a status line and **Check connection and detect models**. There is no model list in the plugin.
+
+| Provider | Where the models come from |
+|---|---|
+| Claude Code | `claude --help` (aliases), `~/.claude/settings.json` (model), model names inside the `claude` executable |
+| Codex CLI | `~/.codex/config.toml` (model) and `~/.codex/models_cache.json` (visible models) |
+| Antigravity CLI | `agy models` (`id<TAB>name`) |
+| Gemini CLI | `~/.gemini/settings.json` and the executable, if installed |
+| Ollama / LM Studio | your local server (`/api/tags`, `/v1/models`) |
+| API | `<base URL>/models` with your key; with no key on a cloud address nothing is requested |
+
+**Disclosure:** to do this the plugin reads the model **name** from those CLI config files on your computer (never login/token files, and nothing else from them is kept), and runs `claude --help` or `agy models` in an empty temp folder. This only happens after AI is on and you press the check button or change a provider setting. With AI off nothing is read, run or requested. A saved model that is not in the list stays selected as "(saved)"; **Other…** lets you type one.
 
 **API key warning:** the key is stored in `data.json` as **plain text** and syncs with your vault if you sync it.
 
