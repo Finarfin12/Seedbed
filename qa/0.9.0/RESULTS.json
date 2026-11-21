@@ -1,0 +1,67 @@
+[
+  {
+    "id": "M6-AI-off",
+    "ok": true,
+    "detail": "AI off: model/status rows hidden=true; external requests=0"
+  },
+  {
+    "id": "M1-Claude",
+    "ok": true,
+    "detail": "status=\"Connected · 32 models available\", options=35, first=[\"(provider default)\",\"fable\",\"opus\",\"sonnet\",\"claude-sonnet-5-5\",\"claude-opus-5-5\"]"
+  },
+  {
+    "id": "M2-Codex",
+    "ok": true,
+    "detail": "status=\"Connected · 10 models available · Detect only — not yet supported for running questions\", options=13, first=[\"(provider default)\",\"gpt-6.1-terra\",\"gpt-6.2-sol\",\"gpt-6.2-astra\"], notices=[\"💡 10 ideas are due for review.\",\"Tidak didukung untuk menjalankan pertanyaan: `codex exec --help` (0.167.2) tidak punya flag yang mematikan SEMUA tool, hanya `--disable <fitur>` satu per satu yang daftarnya terus berubah (aturan keamanan §7.3). Deteksi dan daftar model tetap tampil.\",\"Connected to Codex CLI (10 models detected)\"]"
+  },
+  {
+    "id": "M3-Gemini",
+    "ok": true,
+    "detail": "status=\"Not connected · Unavailable\", dropdown disabled=true, placeholder=\"— No models detected —\""
+  },
+  {
+    "id": "M7-Antigravity",
+    "ok": true,
+    "detail": "status=\"Connected · 23 models available · Detect only — not yet supported for running questions\", options=26, names shown=[\"(provider default)\",\"Gemini 4 Neon (High)\",\"Gemini 4 Neon (XHigh)\",\"Gemini 4 Neon (Medium)\"], notices=[\"Tidak didukung untuk menjalankan pertanyaan: Gemini CLI tidak terpasang di PC pengembangan, sehingga flag mode non-interaktif + mematikan semua tool tidak bisa diverifikasi lewat --help (aturan keamanan §7.3). Bila terpasang, deteksi dan daftar model tetap tampil.\",\"Gemini CLI is not connected (Unavailable)\",\"Tidak didukung untuk menjalankan pertanyaan: `agy --help` (1.5.14) tidak punya flag yang mematikan semua tool (`--sandbox` hanya membatasi terminal, `--mode plan` bukan tool-off, kunci `--settings` tidak terdokumentasi) (aturan keamanan §7.3). Deteksi dan daftar model (`agy models`) tetap tampil.\",\"Connected to Antigravity CLI (23 models detected)\"]"
+  },
+  {
+    "id": "M7-save-id",
+    "ok": true,
+    "detail": "saved model id = \"claude-opus-5-5-high\""
+  },
+  {
+    "id": "S8-GUI-manual-invalid",
+    "ok": true,
+    "detail": "saved=\"claude-opus-5-5-high\", notice=[\"Tidak didukung untuk menjalankan pertanyaan: `agy --help` (1.5.14) tidak punya flag yang mematikan semua tool (`--sandbox` hanya membatasi terminal, `--mode plan` bukan tool-off, kunci `--settings` tidak terdokumentasi) (aturan keamanan §7.3). Deteksi dan daftar model (`agy models`) tetap tampil.\",\"Connected to Antigravity CLI (23 models detected)\",\"Connected to Claude Code (32 models detected)\",\"Invalid model name: letters, digits and . _ : - / only\"]"
+  },
+  {
+    "id": "M4-API-no-key",
+    "ok": true,
+    "detail": "status=\"Not connected · API key required\", requests to api.example.com=0"
+  },
+  {
+    "id": "M4-local",
+    "ok": true,
+    "detail": "local status rows: [\"Connected · 32 models available\",\"Not connected · Unavailable\",\"Not connected · Unavailable\"] (Ollama/LM Studio servers are not running on this PC)"
+  },
+  {
+    "id": "M5-check-notice",
+    "ok": true,
+    "detail": "notices=[\"Connected to Antigravity CLI (23 models detected)\",\"Connected to Claude Code (32 models detected)\",\"Invalid model name: letters, digits and . _ : - / only\",\"api.example.com is not connected (API key required)\"]"
+  },
+  {
+    "id": "M1-socratic",
+    "ok": "SEE-LIVE-TEST",
+    "detail": "One real Socratic session through Claude Code was run by `npm run test:live` (3 real CLI calls incl. injection checks, all passed) on the rebuilt runner; the GUI run only verified the settings screen."
+  },
+  {
+    "id": "Console-errors",
+    "ok": true,
+    "detail": "console errors: 0 []"
+  },
+  {
+    "id": "M6-AI-off-after",
+    "ok": true,
+    "detail": "AI turned off again: external requests=0"
+  }
+]

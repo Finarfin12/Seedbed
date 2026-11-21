@@ -4,6 +4,7 @@ import type { CliDeps } from "./providers";
 import { LOCAL_DEFAULT_URL } from "./providers";
 import { joinUrl } from "./http";
 import type { HttpClient } from "./http";
+import { withTimeout } from "./timeout";
 
 export type DetectStatus = "available" | "missing" | "unsupported" | "error";
 
@@ -27,22 +28,6 @@ export interface Detection {
 	local: LocalDetection[];
 }
 
-function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
-	return new Promise<T>((resolve, reject) => {
-		const t = window.setTimeout(() => reject(new Error(`${label}: timeout ${ms}ms`)), ms);
-		p.then(
-			(v) => {
-				window.clearTimeout(t);
-				resolve(v);
-			},
-			(e) => {
-				window.clearTimeout(t);
-				reject(e instanceof Error ? e : new Error(String(e)));
-			},
-		);
-	});
-}
-
 /**
  * Deteksi penyedia (Addendum §7.2). HANYA dipanggil setelah pengguna menyalakan AI / menekan "Deteksi ulang".
  * CLI: cari di PATH + `--version` (tidak ada pembacaan file token, NF-9). Lokal: GET model.
@@ -50,7 +35,7 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
 export async function detectProviders(deps: CliDeps, http: HttpClient | null, opts: { canSpawn: boolean; timeoutMs?: number; localBase?: Partial<Record<"ollama" | "lmstudio", string>> }): Promise<Detection> {
 	const timeoutMs = opts.timeoutMs ?? 4000;
 	const cli: CliDetection[] = [];
-	for (const tool of ["claude", "codex", "gemini"] as const) {
+	for (const tool of ["claude", "codex", "gemini", "agy"] as const) {
 		const spec = CLI_SPECS[tool];
 		if (!opts.canSpawn) {
 			cli.push({ tool, status: "unsupported", detail: "CLI hanya di desktop" });

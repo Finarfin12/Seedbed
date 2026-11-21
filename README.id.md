@@ -4,11 +4,12 @@
 
 Plugin Obsidian untuk menginkubasi ide dan menguji pemahaman. Ide hanya naik status setelah lolos "gerbang" berpikir: **Socratic**, **Devil's Advocate**, dan **Feynman**. AI opsional hanya boleh bertanya, tidak pernah menjawab.
 
-> **Status: v0.8.4 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Pembaruan sejak 0.8.0:
+> **Status: v0.9.0 (pra-rilis).** Diuji manual di Obsidian desktop (Windows 11). Belum diuji di mobile. Sebelumnya bernama "Bengkel Ide". Pembaruan sejak 0.8.0:
 > - **0.8.1:** Perbaikan kepatuhan scanner dan penyesuaian `minAppVersion` ke `1.8.7`.
 > - **0.8.2:** Callout `[!evidence]` dilewati pada analisis Feynman.
 > - **0.8.3:** Ekstensi browser dipisah ke repositori tersendiri di [seedbed-capture](https://github.com/Finarfin12/seedbed-capture); perbaikan warning scanner.
 > - **0.8.4:** Pengaturan muncul di Settings Search native Obsidian 1.13+ lewat API deklaratif `getSettingDefinitions()`; perbaikan freeze pada tab pengaturan.
+> - **0.9.0:** Model terdeteksi otomatis (dropdown + status koneksi) untuk Claude Code, Codex, Antigravity (`agy`), Gemini, Ollama, LM Studio, dan API; Codex, Gemini, dan Antigravity hanya dideteksi.
 > Tersedia juga sebagai skill agent AI di [seedbed-skill](https://github.com/Finarfin12/seedbed-skill). Lihat [Tangkapan layar](#tangkapan-layar).
 
 ![Panel Inkubator berisi ide jatuh tempo, tombol Recall dan Naikkan, serta bagian Macet](docs/screenshots/incubator.png)
@@ -231,7 +232,7 @@ AI dipakai **hanya untuk bertanya**: pertanyaan Socratic dan Devil's Advocate ya
 
 | Penyedia | Apa yang terjadi | Data keluar dari PC? |
 |---|---|---|
-| **CLI langganan** (Claude Code) | Menjalankan program `claude` yang sudah kamu login-kan. Hanya desktop. | **Ya** (cloud): isi catatan yang sedang dibuka |
+| **CLI langganan** (Claude Code) | Menjalankan program `claude` yang sudah kamu login-kan. Hanya desktop. Codex CLI, Gemini CLI, dan Antigravity CLI (`agy`) hanya **dideteksi** (model ditampilkan), tidak dijalankan. | **Ya** (cloud): isi catatan yang sedang dibuka (hanya Claude Code) |
 | **Model lokal** (Ollama, LM Studio) | Permintaan ke server di komputermu (`localhost`). Plugin tidak memasang apa pun. | Tidak |
 | **API** (kompatibel OpenAI) | Permintaan ke alamat yang kamu isi, dengan API key-mu. | **Ya** (cloud), kecuali alamatnya localhost |
 
@@ -242,8 +243,23 @@ AI dipakai **hanya untuk bertanya**: pertanyaan Socratic dan Devil's Advocate ya
 - Isi catatan dikirim lewat **stdin**, bukan argumen. Folder kerjanya **folder sementara kosong** yang dihapus setelah selesai, bukan vault-mu.
 - Ada batas waktu; proses dihentikan paksa jika melewatinya. Keluaran hanya dipakai sebagai teks pertanyaan setelah lolos validator, dan tidak pernah dieksekusi.
 - Plugin **tidak pernah membaca file login/token** penyedia mana pun.
-- **Codex CLI dan Gemini CLI belum didukung**, karena flag untuk mematikan semua tool belum bisa diverifikasi.
+- **Codex CLI, Gemini CLI, dan Antigravity CLI (`agy`) hanya dideteksi**: modelnya tampil di dropdown tetapi tidak pernah menjalankan pertanyaan, karena belum ada cara terverifikasi untuk mematikan semua tool-nya (`codex exec --help` hanya punya `--disable` per fitur; `agy --help` tidak punya flag tool-off). Daftar argumen terlarang (mis. `--dangerously-skip-permissions`, `--continue`, `--conversation`, `--remote-control`) ditolak untuk setiap CLI.
 - Prompt injection di dalam catatan tetap mungkin dicoba. Plugin membungkus catatan sebagai data, mematikan semua tool, dan menolak keluaran yang bukan pertanyaan.
+
+### Deteksi model otomatis (0.9.0)
+
+Di Pengaturan → AI (setelah AI dinyalakan), tiap penyedia menampilkan **dropdown model yang diisi penyedia itu sendiri**, baris status, dan tombol **Cek koneksi dan deteksi model**. Plugin tidak memuat daftar model.
+
+| Penyedia | Asal daftar model |
+|---|---|
+| Claude Code | `claude --help` (alias), `~/.claude/settings.json` (model), nama model di dalam executable `claude` |
+| Codex CLI | `~/.codex/config.toml` (model) dan `~/.codex/models_cache.json` (model yang terlihat) |
+| Antigravity CLI | `agy models` (`id<TAB>nama`) |
+| Gemini CLI | `~/.gemini/settings.json` dan executable, bila terpasang |
+| Ollama / LM Studio | server lokalmu (`/api/tags`, `/v1/models`) |
+| API | `<base URL>/models` dengan kunci-mu; tanpa kunci pada alamat cloud tidak ada permintaan sama sekali |
+
+**Disclosure:** untuk itu plugin membaca **nama** model dari file konfigurasi CLI di komputermu (bukan file login/token, dan tidak ada isi lain yang disimpan), serta menjalankan `claude --help` atau `agy models` di folder sementara kosong. Ini hanya terjadi setelah AI menyala dan kamu menekan tombol cek atau mengubah pengaturan penyedia. Saat AI mati tidak ada file dibaca, program dijalankan, atau permintaan dikirim. Model yang tersimpan tetapi tidak ada di daftar tetap terpilih sebagai "(tersimpan)"; **Lainnya…** untuk mengetik sendiri.
 
 **Peringatan API key:** key disimpan di `data.json` sebagai **teks biasa** dan ikut tersinkron bila vault-mu disinkronkan.
 

@@ -3,7 +3,7 @@ import type { Language } from "../types";
 // ---- Pengaturan AI (Addendum 07 §7.4). AI MATI secara default. ----
 
 export type ProviderId = "cli" | "local" | "api";
-export type CliTool = "claude" | "codex" | "gemini";
+export type CliTool = "claude" | "codex" | "gemini" | "agy";
 export type LocalKind = "ollama" | "lmstudio";
 export type SocraticMode = "adaptif" | "satu-tarikan";
 

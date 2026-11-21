@@ -66,7 +66,7 @@ export function mergeAi(loaded: unknown, d: AiSettings = DEFAULT_AI): AiSettings
 		providers: {
 			cli: {
 				enabled: cli.enabled === true,
-				tool: oneOf<CliTool>(cli.tool, ["claude", "codex", "gemini"], d.providers.cli.tool),
+				tool: oneOf<CliTool>(cli.tool, ["claude", "codex", "gemini", "agy"], d.providers.cli.tool),
 				model: str(cli.model, d.providers.cli.model).trim(),
 				approved: cli.approved === true,
 			},
