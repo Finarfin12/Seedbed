@@ -47,6 +47,10 @@ export class MockElement {
 	addClass(c: string) {
 		this.className += " " + c;
 	}
+	toggleClass(c: string, on: boolean) {
+		if (on) this.className += " " + c;
+		else this.className = this.className.split(" ").filter((x) => x !== c).join(" ");
+	}
 }
 
 export class PluginSettingTab {
@@ -136,6 +140,10 @@ export class Setting {
 			},
 			setValue: (v: string) => {
 				selectEl.value = v;
+				return comp;
+			},
+			setDisabled: (d: boolean) => {
+				selectEl.disabled = d;
 				return comp;
 			},
 			onChange: (handler: (v: string) => void) => {

@@ -1,7 +1,8 @@
 import { Notice, Setting } from "obsidian";
 import { isLocalUrl } from "../adapter/ai/http";
 import { CLI_SPECS } from "../adapter/ai/cliSpecs";
-import type { ProviderId, SocraticMode } from "../domain/ai/types";
+import type { CliTool, ProviderId, SocraticMode } from "../domain/ai/types";
+import { buildPicker, OTHER_VALUE, statusText, validateManualModel } from "./modelPicker";
 import type SeedbedPlugin from "../main";
 import { ApproveModal } from "./approveModal";
 import type { ApproveInfo } from "./approveModal";
@@ -60,6 +61,105 @@ export function buildAiSettingGroup(plugin: SeedbedPlugin, rerender: () => void)
 	}
 
 	const isAiEnabled = () => ai.enabled;
+
+	/** Nama merek program (tidak diterjemahkan). */
+	const CLI_NAMES: Record<CliTool, string> = { claude: "Claude Code", codex: "Codex CLI", gemini: "Gemini CLI", agy: "Antigravity CLI" };
+	const providerName = (id: ProviderId): string =>
+		id === "cli" ? CLI_NAMES[cli.tool] : id === "local" ? (local.kind === "ollama" ? "Ollama" : "LM Studio") : (() => {
+			try {
+				return new URL(api.baseUrl).host || "API";
+			} catch {
+				return "API";
+			}
+		})();
+
+	/** Deteksi model + Notice (dipakai tombol cek dan saat ganti penyedia/URL/kunci). */
+	const refreshAndNotify = async (id: ProviderId): Promise<void> => {
+		let result;
+		try {
+			result = await plugin.refreshModels(id);
+		} catch (e) {
+			new Notice(t("notice.error", { error: e instanceof Error ? e.message : String(e) }));
+			rerender();
+			return;
+		}
+		if (result) {
+			const name = providerName(id);
+			new Notice(
+				result.connected
+					? t("notice.model.connected", { name, n: result.models.length })
+					: t("notice.model.notConnected", { name, reason: statusText(result, t).split(" · ").slice(1).join(" · ") || statusText(result, t) }),
+			);
+		}
+		rerender();
+	};
+
+	/** Dropdown model + kolom manual + status koneksi untuk satu penyedia. */
+	const modelRows = (id: ProviderId, cfg: { model: string }, allowDefault: () => boolean, name: string, desc?: string): SettingItemDef[] => {
+		const view = () => buildPicker({ result: plugin.modelInfo[id], saved: cfg.model, allowDefault: allowDefault(), manual: plugin.modelManual[id], t });
+		return [
+			{
+				id: `ai.${id}.model`,
+				name,
+				desc,
+				visible: isAiEnabled,
+				render: (setting) => {
+					const v = view();
+					setting.addDropdown((dd) => {
+						for (const o of v.options) dd.addOption(o.value, o.label);
+						dd.setValue(v.value);
+						dd.setDisabled(v.disabled);
+						dd.onChange(async (value) => {
+							if (value === OTHER_VALUE) {
+								plugin.modelManual[id] = true;
+								rerender();
+								return;
+							}
+							plugin.modelManual[id] = false;
+							cfg.model = value;
+							await save();
+							rerender();
+						});
+					});
+				},
+			},
+			{
+				id: `ai.${id}.model.manual`,
+				name: t("set.ai.model.manual"),
+				desc: t("set.ai.model.manual.desc"),
+				visible: () => isAiEnabled() && view().showManual,
+				render: (setting) => {
+					setting.addText((c) => {
+						c.setValue(cfg.model).onChange(async (value) => {
+							const checked = validateManualModel(value);
+							c.inputEl.toggleClass("mod-warning", !checked.ok);
+							if (!checked.ok) return; // nama yang tidak aman TIDAK disimpan
+							cfg.model = checked.model;
+							await save();
+						});
+						c.inputEl.addEventListener("change", () => {
+							if (!validateManualModel(c.inputEl.value).ok) new Notice(t("notice.model.invalid"));
+							else rerender();
+						});
+					});
+				},
+			},
+			{
+				id: `ai.${id}.status`,
+				name: t("set.ai.model.status"),
+				desc: statusText(plugin.modelInfo[id], t),
+				visible: isAiEnabled,
+				render: (setting) => {
+					setting.addButton((b) =>
+						b.setButtonText(t("set.ai.model.check")).onClick(async () => {
+							b.setDisabled(true).setButtonText(t("set.ai.model.checking"));
+							await refreshAndNotify(id);
+						}),
+					);
+				},
+			},
+		];
+	};
 
 	const items: SettingItemDef[] = [
 		{
@@ -165,31 +265,19 @@ export function buildAiSettingGroup(plugin: SeedbedPlugin, rerender: () => void)
 			visible: isAiEnabled,
 			render: (setting) => {
 				setting.addDropdown((dd) => {
-					for (const tool of ["claude", "codex", "gemini"] as const) dd.addOption(tool, t(`cli.${tool}`));
+					for (const tool of ["claude", "codex", "gemini", "agy"] as const) dd.addOption(tool, t(`cli.${tool}`));
 					dd.setValue(cli.tool).onChange(async (v) => {
 						cli.tool = v as typeof cli.tool;
+						plugin.modelManual.cli = false;
 						revoke("cli");
 						if (!CLI_SPECS[cli.tool].supported) new Notice(CLI_SPECS[cli.tool].reason ?? "unsupported");
 						await save();
-						rerender();
+						await refreshAndNotify("cli");
 					});
 				});
 			},
 		},
-		{
-			id: "ai.cli.model",
-			name: t("set.ai.cli.model"),
-			desc: t("set.ai.cli.model.desc"),
-			visible: isAiEnabled,
-			render: (setting) => {
-				setting.addText((c) =>
-					c.setPlaceholder("haiku").setValue(cli.model).onChange(async (v) => {
-						cli.model = v.trim();
-						await save();
-					}),
-				);
-			},
-		},
+		...modelRows("cli", cli, () => true, t("set.ai.cli.model"), t("set.ai.cli.model.desc")),
 		// ---- Local ----
 		{
 			id: "ai.local.enable",
@@ -216,24 +304,11 @@ export function buildAiSettingGroup(plugin: SeedbedPlugin, rerender: () => void)
 						.setValue(local.kind)
 						.onChange(async (v) => {
 							local.kind = v as typeof local.kind;
+							plugin.modelManual.local = false;
 							revoke("local");
 							await save();
-							rerender();
+							await refreshAndNotify("local");
 						}),
-				);
-			},
-		},
-		{
-			id: "ai.local.model",
-			name: t("set.ai.local.model"),
-			desc: t("set.ai.local.model.desc"),
-			visible: isAiEnabled,
-			render: (setting) => {
-				setting.addText((c) =>
-					c.setPlaceholder("llama3.2:3b").setValue(local.model).onChange(async (v) => {
-						local.model = v.trim();
-						await save();
-					}),
 				);
 			},
 		},
@@ -242,15 +317,18 @@ export function buildAiSettingGroup(plugin: SeedbedPlugin, rerender: () => void)
 			name: t("set.ai.local.url"),
 			visible: isAiEnabled,
 			render: (setting) => {
-				setting.addText((c) =>
+				setting.addText((c) => {
 					c.setPlaceholder(local.kind === "ollama" ? "http://localhost:11434" : "http://localhost:1234").setValue(local.baseUrl).onChange(async (v) => {
 						local.baseUrl = v.trim();
 						revoke("local");
 						await save();
-					}),
-				);
+					});
+					// Deteksi ulang saat selesai mengetik (bukan per ketukan)
+					c.inputEl.addEventListener("change", () => void refreshAndNotify("local"));
+				});
 			},
 		},
+		...modelRows("local", local, () => local.kind === "lmstudio", t("set.ai.local.model"), t("set.ai.local.model.desc")),
 		// ---- API ----
 		{
 			id: "ai.api.enable",
@@ -278,26 +356,14 @@ export function buildAiSettingGroup(plugin: SeedbedPlugin, rerender: () => void)
 			name: t("set.ai.api.url"),
 			visible: isAiEnabled,
 			render: (setting) => {
-				setting.addText((c) =>
+				setting.addText((c) => {
 					c.setPlaceholder("https://api.example.com/v1").setValue(api.baseUrl).onChange(async (v) => {
 						api.baseUrl = v.trim();
 						revoke("api");
 						await save();
-					}),
-				);
-			},
-		},
-		{
-			id: "ai.api.model",
-			name: t("set.ai.api.model"),
-			visible: isAiEnabled,
-			render: (setting) => {
-				setting.addText((c) =>
-					c.setValue(api.model).onChange(async (v) => {
-						api.model = v.trim();
-						await save();
-					}),
-				);
+					});
+					c.inputEl.addEventListener("change", () => void refreshAndNotify("api"));
+				});
 			},
 		},
 		{
@@ -313,9 +379,12 @@ export function buildAiSettingGroup(plugin: SeedbedPlugin, rerender: () => void)
 						api.apiKey = v;
 						await save();
 					});
+					// Tanpa kunci = 0 permintaan jaringan; dengan kunci, daftar model diminta setelah selesai mengetik
+					c.inputEl.addEventListener("change", () => void refreshAndNotify("api"));
 				});
 			},
 		},
+		...modelRows("api", api, () => false, t("set.ai.api.model")),
 		// ---- Behavior ----
 		{
 			id: "ai.behavior.mode",

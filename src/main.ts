@@ -5,8 +5,11 @@ import { createQuestionService } from "./adapter/ai/factory";
 import type { FactoryDeps } from "./adapter/ai/factory";
 import { detectProviders } from "./adapter/ai/detector";
 import type { Detection } from "./adapter/ai/detector";
+import { discoverModels, discoveryTarget } from "./adapter/ai/modelDiscovery";
+import type { DiscoveryDeps, DiscoveryResult } from "./adapter/ai/modelDiscovery";
 import { ObsidianHttp } from "./adapter/ai/obsidianHttp";
-import { findExecutable, makeSandboxDir, NodeProcessRunner } from "./adapter/ai/runner";
+import { findExecutable, makeSandboxDir, NodeDiscoveryIo, NodeProcessRunner } from "./adapter/ai/runner";
+import type { ProviderId } from "./domain/ai/types";
 import { CaptureHandler } from "./adapter/captureHandler";
 import { IdeaIndex } from "./adapter/ideaIndex";
 import { NoteFactory } from "./adapter/noteFactory";
@@ -51,6 +54,11 @@ export default class SeedbedPlugin extends Plugin {
 	/** Hitung panggilan AI sejak plugin dimuat (hanya di memori; untuk memantau kuota). */
 	aiStats = { cli: 0, local: 0, api: 0 };
 	lastDetection: Detection | null = null;
+	/** Hasil deteksi model per penyedia (hanya di memori, per sesi). Disegarkan oleh tombol cek / ganti penyedia. */
+	modelInfo: Partial<Record<ProviderId, DiscoveryResult>> = {};
+	private modelSeq: Record<ProviderId, number> = { cli: 0, local: 0, api: 0 };
+	/** Pengguna memilih "Lainnya…" di dropdown model (hanya UI, tidak disimpan). */
+	modelManual: Record<ProviderId, boolean> = { cli: false, local: false, api: false };
 	private statusBarEl: HTMLElement | null = null;
 	private startupNotified = false;
 
@@ -202,7 +210,36 @@ export default class SeedbedPlugin extends Plugin {
 	async detectAi(): Promise<Detection> {
 		const d = this.aiDeps();
 		this.lastDetection = await detectProviders(d, d.http, { canSpawn: d.canSpawn });
+		// Isi dropdown model untuk ketiga penyedia dari pengaturan saat ini
+		await Promise.all((["cli", "local", "api"] as const).map((id) => this.refreshModels(id)));
 		return this.lastDetection;
+	}
+
+	private discoveryDeps(): DiscoveryDeps {
+		const d = this.aiDeps();
+		return {
+			runner: d.runner,
+			findExe: d.findExe,
+			makeSandbox: d.makeSandbox,
+			http: d.http,
+			canSpawn: d.canSpawn,
+			// Pembacaan berkas hanya di desktop; di mobile tidak ada Node
+			io: d.canSpawn ? new NodeDiscoveryIo() : null,
+		};
+	}
+
+	/**
+	 * Deteksi model satu penyedia dan simpan hasilnya di memori. HANYA dari aksi pengguna di pengaturan dan HANYA bila AI
+	 * menyala: AI mati = 0 permintaan jaringan dan 0 program (NF-1). Hasil yang kedaluwarsa (pengaturan berubah
+	 * saat deteksi berjalan) dibuang.
+	 */
+	async refreshModels(id: ProviderId): Promise<DiscoveryResult | null> {
+		if (!this.settings.ai.enabled) return null;
+		const seq = ++this.modelSeq[id];
+		const result = await discoverModels(discoveryTarget(this.settings.ai, id), this.discoveryDeps());
+		if (seq !== this.modelSeq[id]) return this.modelInfo[id] ?? null;
+		this.modelInfo[id] = result;
+		return result;
 	}
 
 	// ---------- Panel ----------

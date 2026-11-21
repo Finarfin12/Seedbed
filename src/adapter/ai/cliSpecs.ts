@@ -18,6 +18,8 @@ export interface CliSpec {
 	parseOutput(stdout: string): string;
 	/** Flag pengaman yang WAJIB ada (dicek lagi sebelum spawn). Tiap elemen = urutan argumen yang harus muncul. */
 	requiredGuards: string[][];
+	/** Argumen yang TIDAK BOLEH pernah muncul (melewati izin, melanjutkan sesi lama, membuka kendali jarak jauh, dst.). */
+	forbiddenArgs: string[];
 }
 
 /** Nama model dibatasi agar tidak bisa menyelundupkan flag baru. */
@@ -86,32 +88,86 @@ const claude: CliSpec = {
 		["--safe-mode"],
 		["--strict-mcp-config"],
 	],
+	forbiddenArgs: ["--bare", "--dangerously-skip-permissions", "--allow-dangerously-skip-permissions", "--allowedTools", "--allowed-tools", "--add-dir", "--continue", "--resume"],
 };
 
-const UNVERIFIED =
-	"Tidak didukung: CLI ini tidak terpasang di PC pengembangan, sehingga flag mode non-interaktif + mematikan semua tool tidak bisa diverifikasi lewat --help/uji sungguhan (aturan keamanan §7.3).";
+/**
+ * Codex CLI 0.167.2 (diperiksa lewat `codex --help`, `codex exec --help`, `codex features list` di PC pengembang, 2026-11-21):
+ * ada mode non-interaktif (`exec`), `--sandbox read-only`, `--ephemeral`, `--ignore-user-config`, tetapi TIDAK ADA satu
+ * flag pun yang mematikan SEMUA tool. Yang tersedia hanya `--disable <fitur>` satu per satu, dan daftar fiturnya panjang dan berubah
+ * antarversi (shell_tool, unified_exec, apps, browser_use, computer_use, plugins, memories, hooks, multi_agent, image_generation, ...).
+ * Daftar-tolak seperti itu bukan jaminan, jadi menurut aturan §7.3 Codex hanya DIDETEKSI (model tetap tampil), tidak dijalankan.
+ */
+const UNSUPPORTED_CODEX =
+	"Tidak didukung untuk menjalankan pertanyaan: `codex exec --help` (0.167.2) tidak punya flag yang mematikan SEMUA tool, hanya `--disable <fitur>` satu per satu yang daftarnya terus berubah (aturan keamanan §7.3). Deteksi dan daftar model tetap tampil.";
 
 const codex: CliSpec = {
 	tool: "codex",
 	supported: false,
-	reason: UNVERIFIED,
+	reason: UNSUPPORTED_CODEX,
 	exe: "codex",
 	versionArgs: ["--version"],
 	buildArgs: () => {
-		throw new Error(UNVERIFIED);
+		throw new Error(UNSUPPORTED_CODEX);
 	},
 	parseOutput: () => {
-		throw new Error(UNVERIFIED);
+		throw new Error(UNSUPPORTED_CODEX);
 	},
 	requiredGuards: [],
+	forbiddenArgs: ["--dangerously-bypass-approvals-and-sandbox", "--dangerously-bypass-hook-trust", "--full-auto", "--search", "--add-dir", "resume"],
 };
 
-const gemini: CliSpec = { ...codex, tool: "gemini", exe: "gemini" };
+/** Gemini CLI tidak terpasang di PC pengembang: flag tool-off tidak bisa diverifikasi, jadi hanya dideteksi. */
+const UNSUPPORTED_GEMINI =
+	"Tidak didukung untuk menjalankan pertanyaan: Gemini CLI tidak terpasang di PC pengembangan, sehingga flag mode non-interaktif + mematikan semua tool tidak bisa diverifikasi lewat --help (aturan keamanan §7.3). Bila terpasang, deteksi dan daftar model tetap tampil.";
 
-export const CLI_SPECS: Record<CliTool, CliSpec> = { claude, codex, gemini };
+const gemini: CliSpec = {
+	...codex,
+	tool: "gemini",
+	exe: "gemini",
+	reason: UNSUPPORTED_GEMINI,
+	buildArgs: () => {
+		throw new Error(UNSUPPORTED_GEMINI);
+	},
+	parseOutput: () => {
+		throw new Error(UNSUPPORTED_GEMINI);
+	},
+	forbiddenArgs: ["--yolo", "-y", "--approval-mode=yolo", "--all-files"],
+};
 
-/** Pastikan semua flag pengaman ada (pertahanan berlapis; gagal = jangan spawn). */
+/**
+ * Antigravity CLI (agy 1.5.14), diperiksa lewat `agy --help` di PC pengembang (2026-11-21). Tersedia: `-p` (non-interaktif),
+ * `--output-format json`, `--disable-slash-commands`, `--sandbox` ("terminal restrictions"), `--mode plan`, `--settings`.
+ * TIDAK terverifikasi: cara mematikan SEMUA tool. `--sandbox` hanya membatasi terminal, `--mode plan` mengatur mode eksekusi (bukan
+ * mematikan tool), dan kunci `--settings` tidak didokumentasikan di --help. Maka agy hanya DIDETEKSI (model dari `agy models`).
+ * `requiredGuards` di bawah adalah syarat MINIMUM bila suatu hari tool-off terverifikasi; `forbiddenArgs` berlaku selalu.
+ */
+const UNSUPPORTED_AGY =
+	"Tidak didukung untuk menjalankan pertanyaan: `agy --help` (1.5.14) tidak punya flag yang mematikan semua tool (`--sandbox` hanya membatasi terminal, `--mode plan` bukan tool-off, kunci `--settings` tidak terdokumentasi) (aturan keamanan §7.3). Deteksi dan daftar model (`agy models`) tetap tampil.";
+
+const agy: CliSpec = {
+	tool: "agy",
+	supported: false,
+	reason: UNSUPPORTED_AGY,
+	exe: "agy",
+	versionArgs: ["--version"],
+	buildArgs: () => {
+		throw new Error(UNSUPPORTED_AGY);
+	},
+	parseOutput: () => {
+		throw new Error(UNSUPPORTED_AGY);
+	},
+	requiredGuards: [["-p"], ["--output-format", "json"], ["--disable-slash-commands"], ["--sandbox"], ["--mode", "plan"]],
+	forbiddenArgs: ["--dangerously-skip-permissions", "--continue", "-c", "--conversation", "--remote-control", "--remote-agent", "--mode=auto", "--add-dir"],
+};
+
+export const CLI_SPECS: Record<CliTool, CliSpec> = { claude, codex, gemini, agy };
+
+/** Pastikan semua flag pengaman ada DAN tidak ada argumen terlarang (pertahanan berlapis; gagal = jangan spawn). */
 export function assertGuards(spec: CliSpec, args: string[]): void {
+	for (const bad of spec.forbiddenArgs) {
+		if (args.includes(bad)) throw new Error(`forbidden argument: ${bad}`);
+	}
 	for (const guard of spec.requiredGuards) {
 		const i = args.indexOf(guard[0] as string);
 		const ok = i !== -1 && guard.every((g, k) => args[i + k] === g);
