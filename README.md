@@ -4,7 +4,7 @@
 
 An Obsidian plugin for incubating ideas and testing your understanding. An idea only moves up a stage after it passes a thinking "gate": **Socratic**, **Devil's Advocate**, or **Feynman**. The optional AI is only allowed to ask questions, never to answer them.
 
-> **Status: v0.9.0 (pre-release).** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.8.0:
+> **Status: v0.9.0.** Manually tested on Obsidian desktop (Windows 11). Not yet tested on mobile. New since 0.8.0:
 > - **0.8.1:** Scanner compliance fixes and raised `minAppVersion` to `1.8.7`.
 > - **0.8.2:** Feynman analysis skips `[!evidence]` callouts.
 > - **0.8.3:** Browser extension split into standalone [seedbed-capture](https://github.com/Finarfin12/seedbed-capture) repository; scanner warning cleanups.
